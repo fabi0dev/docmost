@@ -39,6 +39,9 @@ export async function GET(request: NextRequest) {
     const tree = await prisma.documentTree.findMany({
       where: {
         workspaceId,
+        document: {
+          deletedAt: null,
+        },
       },
       include: {
         document: {

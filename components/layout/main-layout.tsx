@@ -6,6 +6,7 @@ import { signOut, useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { useWorkspaceStore } from '@/stores/workspace-store'
 import { Input } from '@/components/ui/input'
+import { useUIStore } from '@/stores/ui-store'
 import {
   FileText,
   MagnifyingGlass,
@@ -16,6 +17,9 @@ import {
   Users,
   Palette,
   SignOut,
+  Moon,
+  Sun,
+  Desktop,
 } from '@phosphor-icons/react'
 
 interface MainLayoutProps {
@@ -26,6 +30,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter()
   const { data: session } = useSession()
   const { currentWorkspace } = useWorkspaceStore()
+  const { theme, setTheme } = useUIStore()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -34,6 +39,8 @@ export function MainLayout({ children }: MainLayoutProps) {
       // TODO: implementar abertura do modal/busca global
     }
   }
+
+  const isCurrentTheme = (value: 'light' | 'dark' | 'system') => theme === value
 
   return (
     <div className="flex h-screen flex-col bg-background" onKeyDown={handleKeyDown}>
@@ -59,7 +66,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               type="text"
               placeholder="Buscar... ⌘K"
               className="w-full pl-9 bg-muted/60 border-muted hover:bg-muted/80 focus:bg-background focus:border-primary/50 transition-all shadow-sm"
-              // TODO: integrar com componente de busca global
+            // TODO: integrar com componente de busca global
             />
           </div>
         </div>
@@ -99,7 +106,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   </p>
                 </div>
                 <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => {
                     setIsUserMenuOpen(false)
                     if (currentWorkspace) {
@@ -111,7 +118,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   <span>Configurações do workspace</span>
                 </button>
                 <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => {
                     setIsUserMenuOpen(false)
                     if (currentWorkspace) {
@@ -146,8 +153,52 @@ export function MainLayout({ children }: MainLayoutProps) {
                   </div>
                 </div>
 
+                <div className="px-4 pb-3 pt-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">
+                    Tema
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTheme('light')}
+                      className={`flex w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                        isCurrentTheme('light')
+                          ? 'bg-accent text-accent-foreground border-accent'
+                          : 'bg-background text-muted-foreground hover:bg-accent/40'
+                      }`}
+                    >
+                      <Sun className="h-3.5 w-3.5" />
+                      <span>Claro</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTheme('dark')}
+                      className={`flex w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                        isCurrentTheme('dark')
+                          ? 'bg-accent text-accent-foreground border-accent'
+                          : 'bg-background text-muted-foreground hover:bg-accent/40'
+                      }`}
+                    >
+                      <Moon className="h-3.5 w-3.5" />
+                      <span>Escuro</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTheme('system')}
+                      className={`flex w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                        isCurrentTheme('system')
+                          ? 'bg-accent text-accent-foreground border-accent'
+                          : 'bg-background text-muted-foreground hover:bg-accent/40'
+                      }`}
+                    >
+                      <Desktop className="h-3.5 w-3.5" />
+                      <span>Sistema</span>
+                    </button>
+                  </div>
+                </div>
+
                 <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => {
                     setIsUserMenuOpen(false)
                     router.push('/settings/user')
@@ -157,7 +208,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   <span>Meu perfil</span>
                 </button>
                 <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => {
                     setIsUserMenuOpen(false)
                     router.push('/settings/preferences')

@@ -48,17 +48,6 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-sm">
-      {/* Header */}
-      <div className="flex items-center border-b p-4 bg-gradient-to-r from-card to-card/50">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-primary/10">
-            <FileText className="h-5 w-5 text-primary" weight="bold" />
-          </div>
-          <h1 className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Amby
-          </h1>
-        </div>
-      </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto">

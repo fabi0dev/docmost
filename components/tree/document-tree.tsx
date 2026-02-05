@@ -1,14 +1,15 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { useDocumentTree } from '@/hooks/use-documents'
-import { useDocumentStore } from '@/stores/document-store'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { createDocument, deleteDocument } from '@/app/actions/documents'
-import { useQueryClient } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/query-keys'
-import { DotsThree, Plus } from '@phosphor-icons/react'
+import { useState } from "react"
+import { useDocumentTree } from "@/hooks/use-documents"
+import { useDocumentStore } from "@/stores/document-store"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { createDocument, deleteDocument } from "@/app/actions/documents"
+import { useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/lib/query-keys"
+import { DotsThree, Plus } from "@phosphor-icons/react"
 
 interface TreeNode {
   id: string
@@ -31,6 +32,8 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
   const queryClient = useQueryClient()
   const isActive = currentDocument?.id === node.document.id
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleClick = async () => {
     router.push(`/workspace/${workspaceId}/${node.document.slug}`)
@@ -45,54 +48,67 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
     e.stopPropagation()
     setIsMenuOpen(false)
 
-    const confirmed = window.confirm('Tem certeza que deseja excluir esta página?')
-    if (!confirmed) return
+    setIsMenuOpen(false)
+    setIsConfirmOpen(true)
+  }
 
-    const result = await deleteDocument(node.documentId)
+  const handleConfirmDelete = async () => {
+    try {
+      setIsDeleting(true)
 
-    if (result?.success) {
-      if (currentDocument?.id === node.document.id) {
-        setCurrentDocument(null)
-        router.push(`/workspace/${workspaceId}`)
+      const result = await deleteDocument(node.documentId)
+
+      if (result?.success) {
+        if (currentDocument?.id === node.document.id) {
+          setCurrentDocument(null)
+          router.push(`/workspace/${workspaceId}`)
+        }
+
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+        })
       }
-
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.documents.tree(workspaceId).queryKey,
-      })
+    } finally {
+      setIsDeleting(false)
+      setIsConfirmOpen(false)
     }
   }
 
   return (
     <div className="select-none">
       <div
-        className={`relative flex items-center gap-2 rounded-md px-2 py-1.5 transition-all group cursor-pointer ${isActive
-          ? 'bg-primary/20 border-l-2 border-primary text-primary'
-          : 'hover:bg-primary/10'
-          }`}
+        className={`relative flex items-center gap-2 rounded-md px-2 py-1.5 transition-all group cursor-pointer ${
+          isActive
+            ? "bg-primary/20 border-l-2 border-primary text-primary"
+            : "hover:bg-primary/10"
+        }`}
         style={{ paddingLeft: `${node.depth * 16 + 8}px` }}
       >
         <span
-          className={`text-xs transition-colors ${isActive
-            ? 'text-primary'
-            : 'text-primary/60 group-hover:text-primary'
-            }`}
+          className={`text-xs transition-colors ${
+            isActive
+              ? "text-primary"
+              : "text-primary/60 group-hover:text-primary"
+          }`}
         >
           •
         </span>
         <button
           onClick={handleClick}
-          className={`flex-1 text-left text-sm font-medium transition-colors ${isActive
-            ? 'text-primary font-semibold'
-            : 'text-foreground hover:text-primary'
-            }`}
+          className={`flex-1 text-left text-sm font-medium transition-colors ${
+            isActive
+              ? "text-primary font-semibold"
+              : "text-foreground hover:text-primary"
+          }`}
         >
           {node.document.title}
         </button>
         <Button
           variant="ghost"
           size="icon"
-          className={`h-6 w-6 transition-all hover:bg-primary/20 hover:text-primary ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-            }`}
+          className={`h-6 w-6 transition-all hover:bg-primary/20 hover:text-primary ${
+            isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
           onClick={handleToggleMenu}
         >
           <DotsThree className="h-3 w-3" weight="bold" />
@@ -109,6 +125,17 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Excluir página"
+        description="Tem certeza que deseja excluir esta página? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        loading={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   )
 }
