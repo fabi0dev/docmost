@@ -6,12 +6,12 @@ import { Separator } from '@/components/ui/separator'
 import { useRouter } from 'next/navigation'
 import { useWorkspaceStore } from '@/stores/workspace-store'
 import {
-  HomeIcon,
-  FileTextIcon,
-  MagnifyingGlassIcon,
-  GearIcon,
-  PlusIcon,
-} from '@radix-ui/react-icons'
+  House,
+  FileText,
+  MagnifyingGlass,
+  Gear,
+  Plus,
+} from '@phosphor-icons/react'
 import { createDocument } from '@/app/actions/documents'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
@@ -29,13 +29,6 @@ export function Sidebar() {
   const handleSearch = () => {
     // TODO: Implementar busca
     router.push('/home')
-  }
-
-  const handleSettings = () => {
-    if (currentWorkspace) {
-      // TODO: Implementar configurações
-      router.push(`/workspace/${currentWorkspace.id}`)
-    }
   }
 
   const handleNewPage = async () => {
@@ -59,7 +52,7 @@ export function Sidebar() {
       <div className="flex items-center border-b p-4 bg-gradient-to-r from-card to-card/50">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-primary/10">
-            <FileTextIcon className="h-5 w-5 text-primary" />
+            <FileText className="h-5 w-5 text-primary" weight="bold" />
           </div>
           <h1 className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             Docmost
@@ -76,7 +69,7 @@ export function Sidebar() {
             className="w-full justify-start font-medium gap-2 h-9 hover:bg-primary/10 hover:text-primary transition-colors"
             onClick={handleHome}
           >
-            <HomeIcon className="h-4 w-4" />
+            <House className="h-4 w-4" />
             Início
           </Button>
 
@@ -92,7 +85,7 @@ export function Sidebar() {
                   className="w-full justify-start text-sm gap-2 h-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary transition-all"
                   onClick={handleHome}
                 >
-                  <HomeIcon className="h-3.5 w-3.5" />
+                  <House className="h-3.5 w-3.5" />
                   Visão Geral
                 </Button>
                 <Button
@@ -100,15 +93,15 @@ export function Sidebar() {
                   className="w-full justify-start text-sm gap-2 h-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary transition-all"
                   onClick={handleSearch}
                 >
-                  <MagnifyingGlassIcon className="h-3.5 w-3.5" />
+                  <MagnifyingGlass className="h-3.5 w-3.5" />
                   Buscar
                 </Button>
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-sm gap-2 h-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary transition-all"
-                  onClick={handleSettings}
+                  onClick={() => router.push(`/settings/workspace/${currentWorkspace.id}`)}
                 >
-                  <GearIcon className="h-3.5 w-3.5" />
+                  <Gear className="h-3.5 w-3.5" />
                   Configurações do Espaço
                 </Button>
                 <Button
@@ -116,7 +109,7 @@ export function Sidebar() {
                   className="w-full justify-start text-sm gap-2 h-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary transition-all"
                   onClick={handleNewPage}
                 >
-                  <PlusIcon className="h-3.5 w-3.5" />
+                  <Plus className="h-3.5 w-3.5" />
                   Nova Página
                 </Button>
               </div>

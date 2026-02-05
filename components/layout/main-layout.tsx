@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  FileTextIcon,
-  MagnifyingGlassIcon,
-  QuestionMarkCircledIcon,
-  PersonIcon,
-} from '@radix-ui/react-icons'
+  FileText,
+  MagnifyingGlass,
+  Question,
+  User,
+  Bell,
+} from '@phosphor-icons/react'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -34,7 +35,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 group cursor-pointer" onClick={() => router.push('/home')}>
             <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-              <FileTextIcon className="h-5 w-5 text-primary" />
+              <FileText className="h-5 w-5 text-primary" weight="bold" />
             </div>
             <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Docmost
@@ -45,7 +46,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         {/* Center: Search */}
         <div className="flex-1 max-w-xl mx-8">
           <div className="relative group">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
               type="text"
               placeholder="Buscar... ⌘K"
@@ -58,26 +59,19 @@ export function MainLayout({ children }: MainLayoutProps) {
         {/* Right: Actions */}
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors">
-            <QuestionMarkCircledIcon className="h-4 w-4" />
+            <Question className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors relative">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 2a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2h0V2a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2l2 4H2l2-4V2z" />
-              <path d="M6 12a2 2 0 1 0 4 0" />
-            </svg>
+            <Bell className="h-4 w-4" />
             <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full"></span>
           </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors">
-            <PersonIcon className="h-4 w-4" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
+            onClick={() => router.push('/settings/user')}
+          >
+            <User className="h-4 w-4" />
           </Button>
         </div>
       </div>

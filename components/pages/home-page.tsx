@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button'
 import { createDocument } from '@/app/actions/documents'
 import { useWorkspaceStore } from '@/stores/workspace-store'
 import {
-  PlusIcon,
-  MagnifyingGlassIcon,
-  FileTextIcon,
-  StarIcon,
-} from '@radix-ui/react-icons'
+  Plus,
+  MagnifyingGlass,
+  FileText,
+  Star,
+} from '@phosphor-icons/react'
 
 interface Workspace {
   id: string
@@ -76,7 +76,7 @@ export function HomePage({
           <div className="mb-12 text-center">
             <div className="mb-4 flex justify-center">
               <div className="rounded-full bg-primary/10 p-4">
-                <StarIcon className="h-8 w-8 text-primary" />
+                <Star className="h-8 w-8 text-primary" weight="fill" />
               </div>
             </div>
             <h1 className="mb-2 text-4xl font-bold">Bem-vindo ao Docmost</h1>
@@ -85,11 +85,11 @@ export function HomePage({
             </p>
             <div className="flex justify-center gap-3">
               <Button onClick={handleNewDocument} size="lg" className="gap-2">
-                <PlusIcon className="h-5 w-5" />
+                <Plus className="h-5 w-5" />
                 Novo Documento
               </Button>
               <Button variant="outline" size="lg" className="gap-2">
-                <MagnifyingGlassIcon className="h-5 w-5" />
+                <MagnifyingGlass className="h-5 w-5" />
                 Ver Todos os Documentos
               </Button>
             </div>
@@ -107,7 +107,7 @@ export function HomePage({
                   >
                     <div className="mb-3 flex items-start justify-between">
                       <h3 className="font-semibold line-clamp-2">{doc.title}</h3>
-                      <FileTextIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </div>
                     <p className="mb-3 text-xs text-muted-foreground">
                       {doc.workspace.name}

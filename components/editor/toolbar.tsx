@@ -3,15 +3,14 @@
 import { Editor } from '@tiptap/react'
 import { Button } from '@/components/ui/button'
 import {
-  FontBoldIcon,
-  FontItalicIcon,
-  UnderlineIcon,
-  StrikethroughIcon,
-  ListBulletIcon,
-  CodeIcon,
-  QuoteIcon,
-  HeadingIcon,
-} from '@radix-ui/react-icons'
+  TextB,
+  TextItalic,
+  TextStrikethrough,
+  ListBullets,
+  Code,
+  Quotes,
+  TextHOne,
+} from '@phosphor-icons/react'
 
 interface ToolbarProps {
   editor: Editor
@@ -31,7 +30,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             >
-              <HeadingIcon className="h-4 w-4" />
+              <TextHOne className="h-4 w-4" />
             </Button>
             <Button
               variant={editor.isActive('heading', { level: 2 }) ? 'default' : 'ghost'}
@@ -58,7 +57,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
               onClick={() => editor.chain().focus().toggleBold().run()}
             >
-              <FontBoldIcon className="h-4 w-4" />
+              <TextB className="h-4 w-4" />
             </Button>
             <Button
               variant={editor.isActive('italic') ? 'default' : 'ghost'}
@@ -66,7 +65,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
               onClick={() => editor.chain().focus().toggleItalic().run()}
             >
-              <FontItalicIcon className="h-4 w-4" />
+              <TextItalic className="h-4 w-4" />
             </Button>
             <Button
               variant={editor.isActive('strike') ? 'default' : 'ghost'}
@@ -74,7 +73,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
               onClick={() => editor.chain().focus().toggleStrike().run()}
             >
-              <StrikethroughIcon className="h-4 w-4" />
+              <TextStrikethrough className="h-4 w-4" />
             </Button>
             <Button
               variant={editor.isActive('code') ? 'default' : 'ghost'}
@@ -82,7 +81,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
               onClick={() => editor.chain().focus().toggleCode().run()}
             >
-              <CodeIcon className="h-4 w-4" />
+              <Code className="h-4 w-4" />
             </Button>
           </div>
 
@@ -93,7 +92,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
               onClick={() => editor.chain().focus().toggleBulletList().run()}
             >
-              <ListBulletIcon className="h-4 w-4" />
+              <ListBullets className="h-4 w-4" />
             </Button>
             <Button
               variant={editor.isActive('orderedList') ? 'default' : 'ghost'}
@@ -125,7 +124,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
             >
-              <QuoteIcon className="h-4 w-4" />
+              <Quotes className="h-4 w-4" />
             </Button>
           </div>
         </div>

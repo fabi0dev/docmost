@@ -2,12 +2,12 @@
 
 import type { Editor } from '@tiptap/react'
 import {
-  TableIcon,
-  CaretRightIcon,
-  InfoCircledIcon,
-  CodeIcon,
-  QuoteIcon,
-} from '@radix-ui/react-icons'
+  Table,
+  CaretRight,
+  Info,
+  Code,
+  Quotes,
+} from '@phosphor-icons/react'
 import React from 'react'
 
 interface BlockOption {
@@ -26,7 +26,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
 
   const blocks: BlockOption[] = [
     {
-      icon: <TableIcon className="h-5 w-5" />,
+      icon: <Table className="h-5 w-5" />,
       label: 'Tabela',
       description: 'Inserir uma tabela',
       action: (editor) => {
@@ -35,7 +35,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <CaretRightIcon className="h-5 w-5" />,
+      icon: <CaretRight className="h-5 w-5" />,
       label: 'Bloco recolhível',
       description: 'Inserir bloco colapsável',
       action: (editor) => {
@@ -44,7 +44,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <InfoCircledIcon className="h-5 w-5" />,
+      icon: <Info className="h-5 w-5" />,
       label: 'Destaque',
       description: 'Inserir aviso de destaque',
       action: (editor) => {
@@ -53,7 +53,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <CodeIcon className="h-5 w-5" />,
+      icon: <Code className="h-5 w-5" />,
       label: 'Código inline',
       description: 'Inserir código inline',
       action: (editor) => {
@@ -62,7 +62,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <CodeIcon className="h-5 w-5" />,
+      icon: <Code className="h-5 w-5" />,
       label: 'Bloco de código',
       description: 'Inserir bloco de código',
       action: (editor) => {
@@ -71,7 +71,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <QuoteIcon className="h-5 w-5" />,
+      icon: <Quotes className="h-5 w-5" />,
       label: 'Citação',
       description: 'Inserir citação',
       action: (editor) => {

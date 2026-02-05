@@ -1,7 +1,7 @@
 'use client'
 
 import { useDocumentStore } from '@/stores/document-store'
-import { CheckCircledIcon } from '@radix-ui/react-icons'
+import { CheckCircle } from '@phosphor-icons/react'
 
 export function SaveStatus() {
   const { isDirty, isSaving } = useDocumentStore()
@@ -36,7 +36,7 @@ export function SaveStatus() {
 
   return (
     <div className="flex items-center gap-2 text-sm text-green-500">
-      <CheckCircledIcon className="h-4 w-4" />
+      <CheckCircle className="h-4 w-4" weight="fill" />
       <span className="font-medium">Salvo</span>
     </div>
   )

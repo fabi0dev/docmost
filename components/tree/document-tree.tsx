@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { createDocument } from '@/app/actions/documents'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
-import { PlusIcon } from '@radix-ui/react-icons'
+import { Plus } from '@phosphor-icons/react'
 
 interface TreeNode {
   id: string
@@ -82,7 +82,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
             }`}
           onClick={handleNewDocument}
         >
-          <PlusIcon className="h-3 w-3" />
+          <Plus className="h-3 w-3" />
         </Button>
       </div>
     </div>
@@ -118,7 +118,7 @@ export function DocumentTree({ workspaceId }: { workspaceId: string }) {
             className="h-6 w-6 hover:bg-primary/10 hover:text-primary transition-colors"
             onClick={handleNewDocument}
           >
-            <PlusIcon className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
