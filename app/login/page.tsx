@@ -43,7 +43,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="w-full max-w-md space-y-8 rounded-lg border bg-card p-8 shadow-lg">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Docmost</h1>
+          <h1 className="text-3xl font-bold">Amby</h1>
           <p className="mt-2 text-muted-foreground">
             Faça login para continuar
           </p>

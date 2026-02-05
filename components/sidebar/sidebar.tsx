@@ -55,7 +55,7 @@ export function Sidebar() {
             <FileText className="h-5 w-5 text-primary" weight="bold" />
           </div>
           <h1 className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Docmost
+            Amby
           </h1>
         </div>
       </div>

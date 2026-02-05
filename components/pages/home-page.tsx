@@ -61,7 +61,7 @@ export function HomePage({
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex flex-1 flex-col w-full">
       {/* Breadcrumbs */}
       <div className="border-b px-6 py-3">
         <div className="text-sm text-muted-foreground">
@@ -70,8 +70,8 @@ export function HomePage({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-4xl px-6 py-12">
+      <div className="flex-1 overflow-y-auto flex">
+        <div className="w-full max-w-5xl mx-auto px-6 py-12 flex flex-col justify-center">
           {/* Welcome Section */}
           <div className="mb-12 text-center">
             <div className="mb-4 flex justify-center">
@@ -79,7 +79,7 @@ export function HomePage({
                 <Star className="h-8 w-8 text-primary" weight="fill" />
               </div>
             </div>
-            <h1 className="mb-2 text-4xl font-bold">Bem-vindo ao Docmost</h1>
+            <h1 className="mb-2 text-4xl font-bold">Bem-vindo ao Amby</h1>
             <p className="mb-6 text-muted-foreground">
               Pressione Ctrl + K para buscar
             </p>

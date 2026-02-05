@@ -6,9 +6,25 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Docmost - Documentação Colaborativa',
+  title: 'Amby - Documentação Colaborativa',
   description: 'Plataforma de documentação colaborativa self-hosted',
 }
+
+const themeInitScript = `
+  (function() {
+    try {
+      var storageKey = 'amby-theme';
+      var theme = localStorage.getItem(storageKey) || 'system';
+      var isDark = theme === 'dark' ||
+        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (e) {}
+  })();
+`
 
 export default function RootLayout({
   children,
@@ -17,6 +33,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: themeInitScript,
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>

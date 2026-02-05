@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signOut, useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
+import { useWorkspaceStore } from '@/stores/workspace-store'
 import { Input } from '@/components/ui/input'
 import {
   FileText,
@@ -10,6 +12,10 @@ import {
   Question,
   User,
   Bell,
+  Gear,
+  Users,
+  Palette,
+  SignOut,
 } from '@phosphor-icons/react'
 
 interface MainLayoutProps {
@@ -18,12 +24,14 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter()
-  const [searchOpen, setSearchOpen] = useState(false)
+  const { data: session } = useSession()
+  const { currentWorkspace } = useWorkspaceStore()
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault()
-      setSearchOpen(true)
+      // TODO: implementar abertura do modal/busca global
     }
   }
 
@@ -38,7 +46,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <FileText className="h-5 w-5 text-primary" weight="bold" />
             </div>
             <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Docmost
+              Amby
             </span>
           </div>
         </div>
@@ -51,28 +59,129 @@ export function MainLayout({ children }: MainLayoutProps) {
               type="text"
               placeholder="Buscar... ⌘K"
               className="w-full pl-9 bg-muted/60 border-muted hover:bg-muted/80 focus:bg-background focus:border-primary/50 transition-all shadow-sm"
-              onFocus={() => setSearchOpen(true)}
+              // TODO: integrar com componente de busca global
             />
           </div>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors">
+        <div className="flex items-center gap-1 relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
+          >
             <Question className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors relative"
+          >
             <Bell className="h-4 w-4" />
             <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full"></span>
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
-            onClick={() => router.push('/settings/user')}
-          >
-            <User className="h-4 w-4" />
-          </Button>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
+              onClick={() => setIsUserMenuOpen((open) => !open)}
+            >
+              <User className="h-4 w-4" />
+            </Button>
+
+            {isUserMenuOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-lg border bg-popover shadow-lg py-2 z-50">
+                <div className="px-4 pb-2 pt-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    Espaço de Trabalho
+                  </p>
+                </div>
+                <button
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  onClick={() => {
+                    setIsUserMenuOpen(false)
+                    if (currentWorkspace) {
+                      router.push(`/settings/workspace/${currentWorkspace.id}`)
+                    }
+                  }}
+                >
+                  <Gear className="h-4 w-4" />
+                  <span>Configurações do workspace</span>
+                </button>
+                <button
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  onClick={() => {
+                    setIsUserMenuOpen(false)
+                    if (currentWorkspace) {
+                      router.push(`/settings/workspace/${currentWorkspace.id}/members`)
+                    }
+                  }}
+                >
+                  <Users className="h-4 w-4" />
+                  <span>Gerenciar membros</span>
+                </button>
+
+                <div className="my-2 border-t" />
+
+                <div className="px-4 pb-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    Conta
+                  </p>
+                </div>
+                <div className="px-4 pb-2 flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                    {session?.user?.name?.[0]?.toUpperCase() ||
+                      session?.user?.email?.[0]?.toUpperCase() ||
+                      '?'}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">
+                      {session?.user?.name || 'Usuário'}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {session?.user?.email}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  onClick={() => {
+                    setIsUserMenuOpen(false)
+                    router.push('/settings/user')
+                  }}
+                >
+                  <User className="h-4 w-4" />
+                  <span>Meu perfil</span>
+                </button>
+                <button
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                  onClick={() => {
+                    setIsUserMenuOpen(false)
+                    router.push('/settings/preferences')
+                  }}
+                >
+                  <Palette className="h-4 w-4" />
+                  <span>Minhas preferências</span>
+                </button>
+
+                <div className="my-2 border-t" />
+
+                <button
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10"
+                  onClick={() => {
+                    setIsUserMenuOpen(false)
+                    signOut()
+                  }}
+                >
+                  <SignOut className="h-4 w-4" />
+                  <span>Sair</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -83,3 +192,4 @@ export function MainLayout({ children }: MainLayoutProps) {
     </div>
   )
 }
+

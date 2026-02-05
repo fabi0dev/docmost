@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
 import { updateWorkspace } from '@/app/actions/workspace'
 import { useToast } from '@/components/ui/use-toast'
 import { Toaster } from '@/components/ui/toaster'
@@ -9,15 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import {
-  Gear,
-  Users,
-  Trash,
-  ArrowLeft,
-  UserPlus,
-  UserMinus,
-} from '@phosphor-icons/react'
+import { Trash } from '@phosphor-icons/react'
 import { Role } from '@prisma/client'
+import { PageHeader } from '@/components/layout/page-header'
 
 interface WorkspaceSettingsPageProps {
   workspace: {
@@ -39,11 +32,24 @@ interface WorkspaceSettingsPageProps {
 }
 
 export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps) {
-  const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [name, setName] = useState(workspace.name)
   const [description, setDescription] = useState(workspace.description || '')
+
+  const workspaceInitials = useMemo(() => {
+    const trimmed = workspace.name.trim()
+    if (!trimmed) return 'WS'
+    const parts = trimmed.split(' ')
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase()
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  }, [workspace.name])
+
+  const hostname = useMemo(() => {
+    return `${workspace.slug}.amby.com`
+  }, [workspace.slug])
 
   const handleSave = async () => {
     setIsLoading(true)
@@ -88,123 +94,65 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="border-b bg-card px-8 py-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            className="h-9 w-9"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Configurações do Espaço</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Gerencie as configurações e membros do workspace
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="flex h-full flex-col mx-auto">
+      <PageHeader
+        title="Configurações do Espaço"
+        description="Gerencie as configurações e membros do workspace"
+        showBackButton
+      />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-8 py-8">
-          <div className="space-y-6">
-            {/* Informações Gerais */}
+      <div className="flex-1 overflow-y-auto flex justify-center">
+        <div className="w-full max-w-3xl px-6 py-8 md:px-8">
+          <div className="space-y-10">
+            {/* Geral */}
             <div>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Gear className="h-5 w-5" />
-                Informações Gerais
-              </h2>
-              <div className="space-y-4 bg-card rounded-lg border p-6">
-                <div className="space-y-2">
-                  <Label htmlFor="workspaceName">Nome do Espaço</Label>
-                  <Input
-                    id="workspaceName"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Nome do workspace"
-                  />
+              <h2 className="text-xl font-semibold mb-6">Geral</h2>
+              <div className="space-y-8 bg-card rounded-lg border p-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-md bg-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
+                    {workspaceInitials}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="workspaceName">Nome</Label>
+                    <Input
+                      id="workspaceName"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Nome do workspace"
+                    />
+                  </div>
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="workspaceDescription">Descrição</Label>
                   <Input
                     id="workspaceDescription"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Descrição do workspace"
+                    placeholder="Descrição do workspace (opcional)"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="workspaceSlug">Slug</Label>
-                  <Input
-                    id="workspaceSlug"
-                    value={workspace.slug}
-                    disabled
-                    className="bg-muted/50"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    O slug não pode ser alterado
-                  </p>
-                </div>
-                <Button onClick={handleSave} disabled={isLoading}>
-                  {isLoading ? 'Salvando...' : 'Salvar Alterações'}
-                </Button>
-              </div>
-            </div>
 
-            <Separator />
-
-            {/* Membros */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Membros ({workspace.members.length})
-                </h2>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  Adicionar Membro
-                </Button>
-              </div>
-              <div className="space-y-2 bg-card rounded-lg border p-6">
-                {workspace.members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-semibold text-primary">
-                          {member.user.name?.[0] || member.user.email[0].toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          {member.user.name || member.user.email}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {member.user.email}
-                        </div>
-                      </div>
+                <div className="space-y-2 pt-2 border-t">
+                  <Label>Hostname</Label>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="text-sm text-muted-foreground truncate">
+                      {hostname}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm px-2 py-1 rounded bg-muted text-muted-foreground">
-                        {getRoleLabel(member.role)}
-                      </span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <UserMinus className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+                    <Button variant="outline" size="sm">
+                      Alterar hostname
+                    </Button>
                   </div>
-                ))}
+                </div>
+
+                <div>
+                  <Button onClick={handleSave} disabled={isLoading}>
+                    {isLoading ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </div>
               </div>
             </div>
-
-            <Separator />
 
             {/* Zona de Perigo */}
             <div>

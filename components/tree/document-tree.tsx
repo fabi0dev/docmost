@@ -1,13 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { useDocumentTree } from '@/hooks/use-documents'
 import { useDocumentStore } from '@/stores/document-store'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { createDocument } from '@/app/actions/documents'
+import { createDocument, deleteDocument } from '@/app/actions/documents'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
-import { Plus } from '@phosphor-icons/react'
+import { DotsThree, Plus } from '@phosphor-icons/react'
 
 interface TreeNode {
   id: string
@@ -29,20 +30,32 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
   const router = useRouter()
   const queryClient = useQueryClient()
   const isActive = currentDocument?.id === node.document.id
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleClick = async () => {
     router.push(`/workspace/${workspaceId}/${node.document.slug}`)
   }
 
-  const handleNewDocument = async (e: React.MouseEvent) => {
+  const handleToggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const result = await createDocument({
-      workspaceId,
-      title: 'Novo Documento',
-      parentId: node.documentId,
-    })
+    setIsMenuOpen((prev) => !prev)
+  }
 
-    if (result.data) {
+  const handleDeleteDocument = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsMenuOpen(false)
+
+    const confirmed = window.confirm('Tem certeza que deseja excluir esta página?')
+    if (!confirmed) return
+
+    const result = await deleteDocument(node.documentId)
+
+    if (result?.success) {
+      if (currentDocument?.id === node.document.id) {
+        setCurrentDocument(null)
+        router.push(`/workspace/${workspaceId}`)
+      }
+
       queryClient.invalidateQueries({
         queryKey: queryKeys.documents.tree(workspaceId).queryKey,
       })
@@ -52,7 +65,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
   return (
     <div className="select-none">
       <div
-        className={`flex items-center gap-2 rounded-md px-2 py-1.5 transition-all group cursor-pointer ${isActive
+        className={`relative flex items-center gap-2 rounded-md px-2 py-1.5 transition-all group cursor-pointer ${isActive
           ? 'bg-primary/20 border-l-2 border-primary text-primary'
           : 'hover:bg-primary/10'
           }`}
@@ -80,10 +93,21 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
           size="icon"
           className={`h-6 w-6 transition-all hover:bg-primary/20 hover:text-primary ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             }`}
-          onClick={handleNewDocument}
+          onClick={handleToggleMenu}
         >
-          <Plus className="h-3 w-3" />
+          <DotsThree className="h-3 w-3" weight="bold" />
         </Button>
+
+        {isMenuOpen && (
+          <div className="absolute right-2 top-8 z-20 min-w-[140px] rounded-md border bg-popover py-1 shadow-md">
+            <button
+              className="flex w-full items-center px-3 py-1.5 text-left text-sm text-destructive hover:bg-destructive/10"
+              onClick={handleDeleteDocument}
+            >
+              Excluir página
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -3,18 +3,18 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: docmost-postgres
+    container_name: amby-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: docmost
-      POSTGRES_PASSWORD: docmost
-      POSTGRES_DB: docmost
+      POSTGRES_USER: amby
+      POSTGRES_PASSWORD: amby
+      POSTGRES_DB: amby
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U docmost"]
+      test: ["CMD-SHELL", "pg_isready -U amby"]
       interval: 10s
       timeout: 5s
       retries: 5

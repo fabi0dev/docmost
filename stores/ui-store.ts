@@ -11,16 +11,42 @@ interface UIState {
   setTreeOpen: (open: boolean) => void
 }
 
+const THEME_STORAGE_KEY = 'amby-theme'
+
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') {
+    return 'system'
+  }
+
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
+
+  if (stored === 'light' || stored === 'dark' || stored === 'system') {
+    return stored
+  }
+
+  return 'system'
+}
+
+const applyThemeClass = (theme: Theme) => {
+  if (typeof window === 'undefined') return
+
+  const isDark =
+    theme === 'dark' ||
+    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+  document.documentElement.classList.toggle('dark', isDark)
+}
+
 export const useUIStore = create<UIState>((set) => ({
-  theme: 'system',
+  theme: getInitialTheme(),
   setTheme: (theme) => {
     set({ theme })
-    if (theme !== 'system') {
-      document.documentElement.classList.toggle('dark', theme === 'dark')
-    } else {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      document.documentElement.classList.toggle('dark', isDark)
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme)
     }
+
+    applyThemeClass(theme)
   },
   sidebarOpen: true,
   setSidebarOpen: (open) => set({ sidebarOpen: open }),

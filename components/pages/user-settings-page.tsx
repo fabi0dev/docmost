@@ -6,21 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import {
-  User,
-  Envelope,
-  Lock,
-  Trash,
-  ArrowLeft,
-} from '@phosphor-icons/react'
-import { useRouter } from 'next/navigation'
+import { User, Envelope, Lock, Trash } from '@phosphor-icons/react'
 import { updateUser, changePassword } from '@/app/actions/user'
 import { useToast } from '@/components/ui/use-toast'
 import { Toaster } from '@/components/ui/toaster'
+import { PageHeader } from '@/components/layout/page-header'
 
 export function UserSettingsPage() {
   const { data: session, update } = useSession()
-  const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -104,29 +97,15 @@ export function UserSettingsPage() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="border-b bg-card px-8 py-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            className="h-9 w-9"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Configurações do Usuário</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Gerencie suas informações pessoais e preferências
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Configurações do Usuário"
+        description="Gerencie suas informações pessoais e preferências"
+        showBackButton
+      />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-8 py-8">
+      <div className="flex-1 overflow-y-auto flex justify-center">
+        <div className="w-full max-w-3xl px-6 py-8 md:px-8">
           {/* Perfil */}
           <div className="space-y-6">
             <div>
