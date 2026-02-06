@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { createDocument } from '@/app/actions/documents'
@@ -12,6 +13,7 @@ import {
   FileText,
   Star,
 } from '@phosphor-icons/react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface Workspace {
   id: string
@@ -107,10 +109,8 @@ export function HomePage({
                 <Star size={22} className="text-primary" weight="fill" />
               </div>
             </div>
-            <h1 className="mb-2 text-4xl font-bold">Bem-vindo ao Amby</h1>
-            <p className="mb-6 text-muted-foreground">
-              Pressione Ctrl + K para buscar
-            </p>
+            <h1 className="mb-4 text-4xl font-bold">Bem-vindo ao Amby</h1>
+
             <div className="flex justify-center gap-3">
               <Button
                 onClick={handleNewDocument}
@@ -120,7 +120,7 @@ export function HomePage({
               >
                 {isCreating ? (
                   <>
-                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <LoadingSpinner size="sm" className="h-5 w-5 border-current" />
                     Criando...
                   </>
                 ) : (
@@ -175,17 +175,17 @@ export function HomePage({
               <h2 className="mb-4 text-xl font-semibold">Espaços de Trabalho</h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {workspaces.map((workspace, index) => (
-                  <div
+                  <Link
                     key={workspace.id}
-                    className="rounded-lg border bg-card p-4 hover:shadow-md transition-smooth hover:scale-[1.02] hover:-translate-y-0.5 cursor-pointer animate-stagger-in"
+                    href={`/workspace/${workspace.id}`}
+                    className="block rounded-lg border bg-card p-4 hover:shadow-md transition-smooth hover:scale-[1.02] hover:-translate-y-0.5 cursor-pointer animate-stagger-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     style={{ animationDelay: `${index * 50}ms` }}
-                    onClick={() => router.push(`/workspace/${workspace.id}`)}
                   >
                     <h3 className="mb-2 font-semibold">{workspace.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       {workspace.documents.length} documento{workspace.documents.length !== 1 ? 's' : ''}
                     </p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

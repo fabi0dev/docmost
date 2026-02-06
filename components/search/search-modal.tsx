@@ -17,6 +17,8 @@ import { useDebounce } from '@/hooks/use-debounce'
 export type SearchModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Container para o portal (evita layout quebrado; modal fica sempre no topo). */
+  container?: HTMLElement | null
 }
 
 type SearchDocument = {
@@ -33,7 +35,7 @@ type SearchWorkspace = {
   name: string
 }
 
-export function SearchModal({ open, onOpenChange }: SearchModalProps) {
+export function SearchModal({ open, onOpenChange, container }: SearchModalProps) {
   const router = useRouter()
   const { currentWorkspace } = useWorkspaceStore()
   const [query, setQuery] = useState('')
@@ -89,49 +91,56 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
       onOpenChange={onOpenChange}
       label="Busca global"
       shouldFilter={false}
-      contentClassName="rounded-lg border bg-background shadow-lg p-0 overflow-hidden max-w-2xl"
-      overlayClassName="bg-black/40 backdrop-blur-sm"
+      container={container ?? undefined}
+      contentClassName="fixed left-1/2 top-1/2 z-10 w-[calc(100vw-2rem)] max-w-2xl min-w-[280px] -translate-x-1/2 -translate-y-1/2 flex flex-col rounded-xl border border-border bg-background shadow-2xl overflow-hidden pt-0"
+      overlayClassName="fixed inset-0 z-10 bg-black/60 pointer-events-auto"
     >
       <CommandInput
         placeholder="Buscar páginas e workspaces..."
         value={query}
         onValueChange={setQuery}
-        className="border-b px-4 py-3 text-sm focus:ring-0 focus-visible:ring-0"
+        autoFocus
+        disabled={false}
+        className="w-full flex-shrink-0 border-b border-border px-4 py-3.5 text-sm text-foreground bg-background placeholder:text-muted-foreground focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 outline-none rounded-t-xl"
       />
-      <CommandList className="max-h-[min(60vh,400px)] p-2">
-        <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+      <CommandList className="flex-1 min-h-0 max-h-[min(60vh,400px)] overflow-y-auto overflow-x-hidden px-3 py-2">
+        <CommandEmpty className="py-8 text-center text-sm text-muted-foreground">
           {loading ? 'Buscando...' : debouncedQuery.length < 2 ? 'Digite ao menos 2 caracteres' : 'Nenhum resultado'}
         </CommandEmpty>
         {!loading && (documents.length > 0 || workspaces.length > 0) && (
           <>
             {workspaces.length > 0 && (
-              <CommandGroup heading="Workspaces">
+              <CommandGroup heading="Workspaces" className="first:pt-0">
                 {workspaces.map((w) => (
                   <CommandItem
                     key={w.id}
                     value={`workspace-${w.id}`}
                     onSelect={() => goToWorkspace(w.id)}
-                    className="gap-2 rounded-md px-2 py-2"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 aria-selected:bg-accent/10"
                   >
-                    <Folder size={20} className="text-muted-foreground shrink-0" />
-                    <span className="truncate">{w.name}</span>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted/80 text-muted-foreground">
+                      <Folder size={18} weight="duotone" />
+                    </span>
+                    <span className="truncate text-sm font-medium">{w.name}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
             )}
             {documents.length > 0 && (
-              <CommandGroup heading="Páginas">
+              <CommandGroup heading="Páginas" className="pt-1">
                 {documents.map((d) => (
                   <CommandItem
                     key={d.id}
                     value={`doc-${d.id}`}
                     onSelect={() => goToDocument(d.workspaceId, d.id)}
-                    className="gap-2 rounded-md px-2 py-2"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 aria-selected:bg-accent/10"
                   >
-                    <FileText size={20} className="text-muted-foreground shrink-0" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="truncate">{d.title}</span>
-                      <span className="text-xs text-muted-foreground truncate">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted/80 text-muted-foreground">
+                      <FileText size={18} weight="duotone" />
+                    </span>
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="truncate text-sm font-medium">{d.title}</span>
+                      <span className="truncate text-xs text-muted-foreground">
                         {d.workspace.name}
                       </span>
                     </div>

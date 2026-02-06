@@ -8,13 +8,13 @@ import { useWorkspaceStore } from '@/stores/workspace-store'
 import { useDocumentStore } from '@/stores/document-store'
 import { useWorkspace } from '@/hooks/use-workspace'
 import { useDocument } from '@/hooks/use-documents'
-import { Toaster } from '@/components/ui/toaster'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 function LoadingPlaceholder({ message = 'Carregando...' }: { message?: string }) {
   return (
     <div className="flex flex-1 items-center justify-center min-h-[200px] animate-fade-in">
       <div className="flex flex-col items-center gap-3 text-muted-foreground">
-        <span className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <LoadingSpinner size="md" />
         <span className="text-sm animate-pulse">{message}</span>
       </div>
     </div>
@@ -66,7 +66,6 @@ export function WorkspaceLayout({
             message={documentId ? 'Carregando documento...' : 'Carregando espaço...'}
           />
         </div>
-        <Toaster />
       </div>
     )
   }
@@ -77,7 +76,6 @@ export function WorkspaceLayout({
       <div className="flex-1 overflow-hidden flex flex-col min-w-0">
         {documentId ? <Editor /> : <WorkspaceOverview workspaceId={workspaceId} />}
       </div>
-      <Toaster />
     </div>
   )
 }

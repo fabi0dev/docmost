@@ -9,7 +9,7 @@ interface ChatInputFormProps {
   onInputChange: (value: string) => void
   onSend: () => void
   onKeyDown: React.KeyboardEventHandler<HTMLInputElement>
-  inputRef?: React.RefObject<HTMLInputElement | null>
+  inputRef?: React.Ref<HTMLInputElement>
 }
 
 export function ChatInputForm({
@@ -47,8 +47,8 @@ export function ChatInputForm({
           Enviar
         </Button>
       </div>
-      <p className="mt-1 text-[10px] text-muted-foreground">
-        As mensagens deste chat são salvas no workspace atual.
+      <p className="mt-1.5 text-[10px] text-muted-foreground/80">
+        Mensagens salvas no workspace.
       </p>
     </form>
   )

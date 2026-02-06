@@ -5,6 +5,8 @@ import { registerSchema } from '@/lib/validations/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AuthAlert, AuthPanelLeft, AuthFormWrapper } from '@/components/auth'
+import { AUTH } from '@/lib/config'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -44,7 +46,6 @@ export default function RegisterPage() {
       }
 
       router.push('/login?registered=1')
-      router.refresh()
     } catch {
       setError('Erro ao criar conta. Tente novamente.')
     } finally {
@@ -53,130 +54,110 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Painel esquerdo: branding */}
-      <div className="hidden w-1/2 flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
-        <div>
-          <span className="text-2xl font-semibold tracking-tight">Amby</span>
-        </div>
-        <div className="space-y-4">
-          <h2 className="text-3xl font-bold leading-tight">
-            Comece a documentar em minutos
-          </h2>
-          <p className="max-w-md text-primary-foreground/85 text-lg">
-            Crie sua conta, organize documentos em workspaces e colabore com sua equipe.
-          </p>
-        </div>
-        <p className="text-sm text-primary-foreground/70">
-          Plataforma self-hosted · Privacidade e controle
-        </p>
-      </div>
+    <div className="flex min-h-screen bg-background transition-colors duration-300 dark:bg-[hsl(222.2,84%,4.5%)]">
+      <AuthPanelLeft
+        title={AUTH.panel.register.title}
+        description={AUTH.panel.register.description}
+      />
 
-      {/* Painel direito: formulário */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-16">
-        <div className="mx-auto w-full max-w-sm space-y-8">
-          <div className="lg:hidden text-center">
-            <Link href="/" className="text-2xl font-semibold tracking-tight text-foreground">
-              Amby
+      <AuthFormWrapper
+        title="Criar conta"
+        description="Preencha os dados para começar"
+        footer={
+          <>
+            Já tem conta?{' '}
+            <Link
+              href="/login"
+              className="font-medium text-primary underline-offset-4 transition-colors hover:underline hover:text-primary/90"
+            >
+              Entrar
             </Link>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="auth-form-enter auth-form-enter-delay-3">
+              <AuthAlert variant="error">{error}</AuthAlert>
+            </div>
+          )}
+
+          <div className="auth-form-enter auth-form-enter-delay-4 space-y-2">
+            <Label htmlFor="name" className="text-foreground">
+              Nome
+            </Label>
+            <Input
+              id="name"
+              type="text"
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="Seu nome"
+              className="h-11"
+            />
           </div>
 
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Criar conta
-            </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Preencha os dados para começar
-            </p>
+          <div className="auth-form-enter auth-form-enter-delay-5 space-y-2">
+            <Label htmlFor="email" className="text-foreground">
+              E-mail
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="seu@exemplo.com"
+              className="h-11"
+            />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div
-                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
+          <div className="auth-form-enter auth-form-enter-delay-6 space-y-2">
+            <Label htmlFor="password" className="text-foreground">
+              Senha
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              placeholder="Mínimo 6 caracteres"
+              className="h-11"
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome</Label>
-              <Input
-                id="name"
-                type="text"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                placeholder="Seu nome"
-                className="h-11"
-              />
-            </div>
+          <div className="auth-form-enter auth-form-enter-delay-7 space-y-2">
+            <Label htmlFor="confirmPassword" className="text-foreground">
+              Confirmar senha
+            </Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              placeholder="Repita a senha"
+              className="h-11"
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="seu@exemplo.com"
-                className="h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                placeholder="Mínimo 6 caracteres"
-                className="h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar senha</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                placeholder="Repita a senha"
-                className="h-11"
-              />
-            </div>
-
+          <div className="auth-form-enter auth-form-enter-delay-8 pt-1">
             <Button
               type="submit"
-              className="h-11 w-full font-medium"
+              className="h-11 w-full font-medium transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:hover:scale-100 disabled:active:scale-100"
               disabled={loading}
             >
               {loading ? 'Criando conta...' : 'Cadastrar'}
             </Button>
-          </form>
-
-          <p className="text-center text-sm text-muted-foreground">
-            Já tem conta?{' '}
-            <Link
-              href="/login"
-              className="font-medium text-primary underline-offset-4 hover:underline"
-            >
-              Entrar
-            </Link>
-          </p>
-        </div>
-      </div>
+          </div>
+        </form>
+      </AuthFormWrapper>
     </div>
   )
 }

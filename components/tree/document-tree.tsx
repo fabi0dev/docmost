@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { queryKeys } from "@/lib/query-keys"
 import { useToast } from "@/components/ui/use-toast"
 import { DotsThree, Plus } from "@phosphor-icons/react"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 interface TreeNode {
   id: string
@@ -205,7 +206,7 @@ export function DocumentTree({ workspaceId }: { workspaceId: string }) {
           aria-label={isCreating ? "Criando..." : "Nova página"}
         >
           {isCreating ? (
-            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <LoadingSpinner size="sm" />
           ) : (
             <Plus size={22} />
           )}

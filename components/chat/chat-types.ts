@@ -1,8 +1,23 @@
 export type ChatMessageRole = 'user' | 'assistant'
 
+export interface OpenDocumentAction {
+  workspaceId: string
+  documentId: string
+  documentTitle?: string
+}
+
+export type ChatAction =
+  | { type: 'create_workspace'; name: string }
+  | { type: 'create_document'; workspaceId: string; title: string }
+
 export interface ChatMessageActions {
   documentMarkdown?: string
   applied?: boolean
+  openDocument?: OpenDocumentAction
+  suggestWorkspaceSearch?: boolean
+  workspaceSearchQuery?: string
+  /** Ação executável pelo usuário (criar workspace, página, etc.). */
+  chatAction?: ChatAction
 }
 
 export interface ChatMessage {

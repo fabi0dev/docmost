@@ -9,6 +9,8 @@ interface UIState {
   setSidebarOpen: (open: boolean) => void
   treeOpen: boolean
   setTreeOpen: (open: boolean) => void
+  searchOpen: boolean
+  setSearchOpen: (open: boolean) => void
 }
 
 const THEME_STORAGE_KEY = 'amby-theme'
@@ -52,4 +54,6 @@ export const useUIStore = create<UIState>((set) => ({
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   treeOpen: true,
   setTreeOpen: (open) => set({ treeOpen: open }),
+  searchOpen: false,
+  setSearchOpen: (open) => set({ searchOpen: open }),
 }))

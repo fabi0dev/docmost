@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useDocumentTree } from '@/hooks/use-documents'
 import { FileText, Clock } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface TreeDocument {
   id: string
@@ -59,7 +60,7 @@ export function WorkspaceOverview({ workspaceId }: { workspaceId: string }) {
     return (
       <div className="flex flex-1 items-center justify-center min-h-[200px] animate-fade-in">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <span className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <LoadingSpinner size="md" />
           <span className="text-sm animate-pulse">Carregando...</span>
         </div>
       </div>

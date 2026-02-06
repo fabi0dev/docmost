@@ -8,6 +8,12 @@ import { z } from 'zod'
 import { canManage } from '@/lib/permissions'
 import { Role } from '@prisma/client'
 import crypto from 'crypto'
+import { slugify } from '@/lib/utils'
+
+const createWorkspaceSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional().nullable(),
+})
 
 const updateWorkspaceSchema = z.object({
   workspaceId: z.string(),
@@ -36,6 +42,44 @@ const cancelInviteSchema = z.object({
   workspaceId: z.string(),
   inviteId: z.string(),
 })
+
+export async function createWorkspace(data: z.infer<typeof createWorkspaceSchema>) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return { error: 'Não autenticado' }
+    }
+
+    const validated = createWorkspaceSchema.parse(data)
+    const baseSlug = slugify(validated.name) || 'workspace'
+    const slug = `${baseSlug}-${crypto.randomBytes(4).toString('hex')}`
+
+    const workspace = await prisma.workspace.create({
+      data: {
+        name: validated.name.trim(),
+        slug,
+        description: validated.description ?? null,
+      },
+    })
+
+    await prisma.workspaceMember.create({
+      data: {
+        workspaceId: workspace.id,
+        userId: session.user.id,
+        role: Role.OWNER,
+      },
+    })
+
+    revalidatePath('/home')
+    revalidatePath(`/workspace/${workspace.id}`)
+    return { data: workspace }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.errors[0].message }
+    }
+    return { error: 'Erro ao criar workspace' }
+  }
+}
 
 export async function updateWorkspace(data: z.infer<typeof updateWorkspaceSchema>) {
   try {

@@ -17,8 +17,12 @@ interface UseChatSessionReturn {
   isLoading: boolean
   error: string | null
   subtitle: string
-  listRef: React.RefObject<HTMLDivElement | null>
-  handleSend: () => Promise<void>
+  /** Título do documento em contexto (null se nenhum ou se usuário removeu). */
+  contextDocumentTitle: string | null
+  /** Remove o documento do contexto da sessão. */
+  clearContext: () => Promise<void>
+  listRef: React.RefObject<HTMLDivElement>
+  handleSend: (overrideText?: string) => Promise<void>
   handleKeyDown: React.KeyboardEventHandler<HTMLInputElement>
 }
 
@@ -39,7 +43,8 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
   const [isSending, setIsSending] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const listRef = useRef<HTMLDivElement | null>(null)
+  const [contextDetached, setContextDetached] = useState(false)
+  const listRef = useRef<HTMLDivElement>(null)
 
   const subtitle = useMemo(() => {
     if (error) {
@@ -74,7 +79,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               workspaceId: currentWorkspace.id,
-              documentId: currentDocument?.id ?? null,
+              documentId: contextDetached ? null : (currentDocument?.id ?? null),
               title: currentDocument?.title ?? null,
             }),
           })
@@ -83,7 +88,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
             const data = await res.json().catch(() => ({}))
             throw new Error(
               (data as any)?.error ||
-                'Não foi possível criar a sessão de chat. Verifique se você tem acesso ao workspace.',
+              'Não foi possível criar a sessão de chat. Verifique se você tem acesso ao workspace.',
             )
           }
 
@@ -130,13 +135,13 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
         setMessages((prev) =>
           prev.length === 0
             ? [
-                {
-                  id: 'error',
-                  role: 'assistant',
-                  content: message,
-                  createdAt: new Date(),
-                },
-              ]
+              {
+                id: 'error',
+                role: 'assistant',
+                content: message,
+                createdAt: new Date(),
+              },
+            ]
             : prev,
         )
       } finally {
@@ -155,8 +160,8 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     sessionId,
   ])
 
-  const handleSend = async () => {
-    const text = input.trim()
+  const handleSend = async (overrideText?: string) => {
+    const text = (overrideText ?? input.trim()).trim()
     if (!text || isSending || isLoading) return
 
     setError(null)
@@ -203,7 +208,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
           const data = await res.json().catch(() => ({}))
           throw new Error(
             (data as any)?.error ||
-              'Não foi possível criar a sessão de chat. Verifique se você tem acesso ao workspace.',
+            'Não foi possível criar a sessão de chat. Verifique se você tem acesso ao workspace.',
           )
         }
 
@@ -221,7 +226,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
       }
 
       setMessages((prev) => [...prev, userMessage])
-      setInput('')
+      if (!overrideText) setInput('')
 
       await fetch(`/api/chat/sessions/${id}/messages`, {
         method: 'POST',
@@ -245,6 +250,10 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
         .catch(() => ({} as any))) as {
         message?: string
         documentMarkdown?: string
+        openDocument?: { workspaceId: string; documentId: string; documentTitle?: string }
+        suggestWorkspaceSearch?: boolean
+        workspaceSearchQuery?: string
+        chatAction?: { type: 'create_workspace'; name: string } | { type: 'create_document'; workspaceId: string; title: string }
         error?: string
       }
 
@@ -285,7 +294,15 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
         role: 'assistant',
         content: assistantText,
         createdAt: new Date(),
-        actions: documentMarkdown ? { documentMarkdown } : undefined,
+        actions: {
+          ...(documentMarkdown && { documentMarkdown }),
+          ...(completionData.openDocument && { openDocument: completionData.openDocument }),
+          ...(completionData.suggestWorkspaceSearch && {
+            suggestWorkspaceSearch: true,
+            workspaceSearchQuery: completionData.workspaceSearchQuery,
+          }),
+          ...(completionData.chatAction && { chatAction: completionData.chatAction }),
+        },
       }
 
       setMessages((prev) => [...prev, assistantMessage])
@@ -318,6 +335,35 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     }
   }
 
+  const clearContext = async () => {
+    setContextDetached(true)
+    if (sessionId) {
+      try {
+        await fetch(`/api/chat/sessions/${sessionId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documentId: null }),
+        })
+      } catch {
+        setContextDetached(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (!currentDocument?.id) return
+    setContextDetached(false)
+  }, [currentDocument?.id])
+
+  useEffect(() => {
+    if (!sessionId || contextDetached || !currentDocument?.id) return
+    fetch(`/api/chat/sessions/${sessionId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documentId: currentDocument.id }),
+    }).catch(() => {})
+  }, [sessionId, contextDetached, currentDocument?.id])
+
   return {
     messages,
     setMessages,
@@ -327,6 +373,8 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     isLoading,
     error,
     subtitle,
+    contextDocumentTitle: contextDetached ? null : (currentDocument?.title ?? null),
+    clearContext,
     listRef,
     handleSend,
     handleKeyDown,
