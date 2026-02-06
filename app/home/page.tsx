@@ -66,7 +66,17 @@ export default async function HomePageRoute() {
       }),
     ])
 
-    return <HomePage workspaces={workspaces} recentDocuments={recentDocuments} />
+    const userName =
+      session.user.name?.split(' ')[0] ||
+      session.user.email?.split('@')[0] ||
+      'Usuário'
+    return (
+      <HomePage
+        userName={userName}
+        workspaces={workspaces}
+        recentDocuments={recentDocuments}
+      />
+    )
   } catch (error) {
     return <SystemOffline />
   }

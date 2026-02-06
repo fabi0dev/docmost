@@ -6,6 +6,7 @@ import { useDocumentStore } from "@/stores/document-store"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { createDocument, deleteDocument } from "@/app/actions/documents"
 import { useQueryClient } from "@tanstack/react-query"
 import { queryKeys } from "@/lib/query-keys"
@@ -116,24 +117,36 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
         >
           •
         </span>
-        <button
-          onClick={handleClick}
-          className={`flex-1 text-left text-sm font-medium transition-smooth ${isActive
-            ? "text-primary font-semibold"
-            : "text-foreground hover:text-primary"
-            }`}
-        >
-          {node.document.title}
-        </button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-6 w-6 transition-smooth hover:scale-110 hover:bg-primary/20 hover:text-primary ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            }`}
-          onClick={handleToggleMenu}
-        >
-          <DotsThree size={22} weight="bold" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleClick}
+              className={`flex-1 min-w-0 text-left text-sm font-medium transition-smooth truncate block ${isActive
+                ? "text-primary font-semibold"
+                : "text-foreground hover:text-primary"
+                }`}
+            >
+              {node.document.title}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right" sideOffset={8}>
+            {node.document.title}
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-6 w-6 transition-smooth hover:scale-110 hover:bg-primary/20 hover:text-primary ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                }`}
+              onClick={handleToggleMenu}
+            >
+              <DotsThree size={22} weight="bold" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Mais opções</TooltipContent>
+        </Tooltip>
 
         {isMenuOpen && (
           <div className="absolute right-2 top-8 z-20 min-w-[140px] rounded-md border bg-popover py-1 shadow-lg animate-in animate-scale-in origin-top-right">
@@ -161,7 +174,14 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
   )
 }
 
-export function DocumentTree({ workspaceId }: { workspaceId: string }) {
+export function DocumentTree({
+  workspaceId,
+  workspaceName,
+}: {
+  workspaceId: string
+  workspaceName?: string | null
+}) {
+  const router = useRouter()
   const { data: tree, isLoading } = useDocumentTree(workspaceId)
   const queryClient = useQueryClient()
   const { toast } = useToast()
@@ -172,17 +192,18 @@ export function DocumentTree({ workspaceId }: { workspaceId: string }) {
     try {
       const result = await createDocument({
         workspaceId,
-        title: "Novo Documento",
+        title: "Nova Página",
       })
       if (result.data) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.documents.tree(workspaceId).queryKey,
         })
-        toast({ title: "Documento criado" })
+        toast({ title: "Página criada" })
+        router.push(`/workspace/${workspaceId}/${result.data.id}?focus=title`)
       } else {
         toast({
           title: "Erro",
-          description: result.error ?? "Não foi possível criar o documento",
+          description: result.error ?? "Não foi possível criar a página",
           variant: "destructive",
         })
       }
@@ -192,26 +213,43 @@ export function DocumentTree({ workspaceId }: { workspaceId: string }) {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 space-y-2">
-      <div className="flex items-center justify-between px-1 flex-shrink-0">
-        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Páginas
-        </h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 hover:bg-primary/10 hover:text-primary hover:scale-110 transition-smooth"
-          onClick={handleCreateDocument}
-          disabled={isCreating}
-          aria-label={isCreating ? "Criando..." : "Nova página"}
-        >
-          {isCreating ? (
-            <LoadingSpinner size="sm" />
+    <TooltipProvider delayDuration={300}>
+      <div className="flex flex-col flex-1 min-h-0 space-y-2">
+        <div className="flex items-center justify-between px-1 flex-shrink-0">
+          {workspaceName ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-[140px]">
+                  Páginas
+                </h2>
+              </TooltipTrigger>
+              <TooltipContent>{workspaceName}</TooltipContent>
+            </Tooltip>
           ) : (
-            <Plus size={22} />
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-[140px]">
+              Páginas
+            </h2>
           )}
-        </Button>
-      </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 hover:bg-primary/10 hover:text-primary hover:scale-110 transition-smooth"
+                onClick={handleCreateDocument}
+                disabled={isCreating}
+                aria-label={isCreating ? "Criando..." : "Nova página"}
+              >
+                {isCreating ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <Plus size={22} />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{isCreating ? "Criando..." : "Nova página"}</TooltipContent>
+          </Tooltip>
+        </div>
 
       <div className="document-tree-list flex-1 min-h-0 overflow-y-auto overflow-x-hidden rounded-md border border-border/50 bg-muted/30 py-1 pr-1 transition-smooth">
         {isLoading ? (
@@ -235,5 +273,6 @@ export function DocumentTree({ workspaceId }: { workspaceId: string }) {
         )}
       </div>
     </div>
+    </TooltipProvider>
   )
 }

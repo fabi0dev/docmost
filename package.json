@@ -10,7 +10,8 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:dev": "yarn db:migrate && yarn db:generate && yarn db:seed"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.4.0",
@@ -31,6 +32,7 @@
     "@tiptap/extension-collaboration": "^2.1.13",
     "@tiptap/extension-collaboration-cursor": "^2.1.13",
     "@tiptap/extension-link": "^3.19.0",
+    "@tiptap/extension-placeholder": "^2.1.13",
     "@tiptap/extension-task-item": "2.1.0-rc.3",
     "@tiptap/extension-task-list": "2.1.0-rc.3",
     "@tiptap/extension-text-align": "^3.19.0",

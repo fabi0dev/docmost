@@ -115,7 +115,7 @@ export function UserSettingsPage() {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col w-full">
       <PageHeader
         title="Configurações do Usuário"
         description="Gerencie suas informações pessoais e preferências"
@@ -123,7 +123,7 @@ export function UserSettingsPage() {
       />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto flex justify-center">
+      <div className="flex-1 overflow-y-auto flex justify-center mx-auto">
         <div className="w-full max-w-3xl px-6 py-8 md:px-8 animate-fade-in-up">
           {/* Perfil */}
           <div className="space-y-6">

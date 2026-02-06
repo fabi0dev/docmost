@@ -31,7 +31,7 @@ export function TopBar({
   const openSearch = useOpenSearch(onSearchClick)
 
   return (
-    <div className="flex items-center justify-between border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm px-6 py-3 z-10 animate-fade-in-down">
+    <div className="relative z-20 flex items-center justify-between border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm px-6 py-3 animate-fade-in-down">
       <div className="flex items-center gap-3">
         <Link
           href="/home"

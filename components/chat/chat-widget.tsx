@@ -10,6 +10,7 @@ import { useChatApplyToDocument } from './use-chat-apply-to-document'
 import { ChatMessagesList } from './chat-messages-list'
 import { ChatInputForm } from './chat-input-form'
 import { useToast } from '@/components/ui/use-toast'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { createWorkspace } from '@/app/actions/workspace'
 import { createDocument } from '@/app/actions/documents'
 
@@ -18,7 +19,7 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
   const { toast } = useToast()
   const [isExpanded, setIsExpanded] = useState(false)
   const [executingAction, setExecutingAction] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const handleOpenDocument = (payload: OpenDocumentAction) => {
     router.push(`/workspace/${payload.workspaceId}/${payload.documentId}`)
@@ -158,42 +159,49 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
           </div>
         </div>
 
-        <div
-          className="min-h-0 flex-1 flex flex-col overflow-hidden"
-        >
-          <ChatMessagesList
-            growWithContent={!isExpanded}
-            messages={messages}
-          listRef={listRef}
-          isSending={isSending}
-          isLoading={isLoading}
-          canApplyToDocument={canApplyToDocument}
-          applyingMessageId={applyingMessageId}
-          onApplyToDocument={handleApplyToDocument}
-          onOpenDocument={handleOpenDocument}
-          onSearchWorkspace={(query) =>
-            void handleSend(`Pesquise no workspace: ${query}`)
-          }
-          onExecuteChatAction={(action) => void handleExecuteChatAction(action)}
-          executingAction={executingAction}
-          />
-        </div>
+        {isLoading ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 overflow-hidden px-4 py-8">
+            <LoadingSpinner size="md" />
+            <p className="text-sm text-muted-foreground">Carregando chat</p>
+          </div>
+        ) : (
+          <>
+            <div className="min-h-0 flex-1 flex flex-col overflow-hidden">
+              <ChatMessagesList
+                growWithContent={!isExpanded}
+                messages={messages}
+                listRef={listRef}
+                isSending={isSending}
+                isLoading={isLoading}
+                canApplyToDocument={canApplyToDocument}
+                applyingMessageId={applyingMessageId}
+                onApplyToDocument={handleApplyToDocument}
+                onOpenDocument={handleOpenDocument}
+                onSearchWorkspace={(query) =>
+                  void handleSend(`Pesquise no workspace: ${query}`)
+                }
+                onExecuteChatAction={(action) => void handleExecuteChatAction(action)}
+                executingAction={executingAction}
+              />
+            </div>
 
-        <ChatInputForm
-          inputRef={inputRef}
-          input={input}
-          isLoading={isLoading}
-          isSending={isSending}
-          onInputChange={setInput}
-          onSend={() => {
-            void handleSend()
-            inputRef.current?.focus()
-          }}
-          onKeyDown={(e) => {
-            handleKeyDown(e)
-            if (e.key === 'Enter' && !e.shiftKey) inputRef.current?.focus()
-          }}
-        />
+            <ChatInputForm
+              inputRef={inputRef}
+              input={input}
+              isLoading={false}
+              isSending={isSending}
+              onInputChange={setInput}
+              onSend={() => {
+                void handleSend()
+                inputRef.current?.focus()
+              }}
+              onKeyDown={(e) => {
+                handleKeyDown(e)
+                if (e.key === 'Enter' && !e.shiftKey) inputRef.current?.focus()
+              }}
+            />
+          </>
+        )}
       </div>
     </>
   )

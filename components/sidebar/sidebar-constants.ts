@@ -7,5 +7,3 @@ export const SIDEBAR_NAV_ITEM =
 export const SIDEBAR_NAV_ITEM_ACTIVE =
   'bg-muted/80 text-foreground border-l-2 border-primary font-medium'
 
-export const SIDEBAR_HOME_BUTTON =
-  'w-full justify-start font-medium gap-2 h-9 hover:bg-primary/10 hover:text-primary hover:translate-x-0.5 transition-smooth'

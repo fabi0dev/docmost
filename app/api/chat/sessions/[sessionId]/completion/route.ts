@@ -89,20 +89,24 @@ export type ClassifiedIntent =
   | { intent: 'metric_question'; metric?: 'workspace_count' | 'document_count' }
   | { intent: 'chat' }
 
-const INTENT_CLASSIFICATION_SYSTEM = `Você é um classificador de intenções para um chat de documentação. Com base na última mensagem do usuário e no contexto da última resposta do assistente, retorne APENAS um JSON válido, sem markdown e sem texto extra.
+const INTENT_CLASSIFICATION_SYSTEM = `Você classifica a intenção do usuário em um chat de documentação. Retorne APENAS um JSON válido, sem markdown.
 
-Intenções possíveis:
-- open_document: usuário quer abrir, ver ou mostrar um documento/página (ex: "abrir esse doc", "abra o documento Credenciais", "mostre a página X"). Se a mensagem referir "esse doc" ou "este documento" sem nome, use o contexto da última resposta do assistente para inferir o título (ex: título de seção como "Credenciais da Vowe" ou "Credenciais").
-- edit_document: usuário quer editar/organizar/reescrever/formatar o documento atual (ex: "organize esse texto", "reescreva o documento", "aplique no documento").
-- create_workspace: usuário quer criar um novo workspace. Extraia o nome se mencionado.
-- create_document: usuário quer criar uma nova página/documento. Extraia o título se mencionado.
-- metric_question: pergunta sobre quantidade (quantos workspaces, quantos documentos, etc.). Use metric "workspace_count" ou "document_count".
-- chat: conversa normal, perguntas sobre conteúdo, ou qualquer outra coisa.
+REGRAS CRÍTICAS DE CONTEXTO:
+- Se o usuário pede INFORMAÇÃO ou CONTEÚDO (credenciais, dados, "mostre as credenciais", "quais as credenciais", "quais as informações", "onde está X", "me diga X") → use sempre "chat". O sistema vai buscar nos documentos e responder com o conteúdo. NUNCA use open_document nem metric_question para isso.
+- metric_question: SOMENTE quando a pergunta é EXPLICITAMENTE sobre NÚMERO/QUANTIDADE: "quantos documentos?", "quantos workspaces?", "quantas páginas?". Se a pergunta é sobre o conteúdo (ex: "quais as credenciais") → "chat".
+- open_document: SOMENTE quando o usuário quer ABRIR o documento NO EDITOR (navegar para a página). Ex: "abrir esse doc", "abra o documento Credenciais no editor", "mostre o documento X" (no sentido de abrir a página). "Mostre as credenciais" ou "mostre as informações" é pedido de CONTEÚDO → "chat".
 
-Formato de resposta (apenas este JSON, nada mais):
-{"intent":"<uma das intenções acima>","documentTitle":<string ou null só para open_document>,"name":<string só para create_workspace>,"title":<string só para create_document>,"metric":<"workspace_count" ou "document_count" só para metric_question>}
+Intenções:
+- chat: perguntas sobre conteúdo, listar informações, credenciais, URLs, "mostre X", "quais são", "onde está", dúvidas gerais. Use na dúvida.
+- open_document: usuário pede para abrir/navegar para um documento no editor. Só use se ficar claro que ele quer "abrir a página", não "ver o conteúdo". Preencha documentTitle se tiver nome ou inferir do contexto.
+- edit_document: pedido explícito de editar/organizar/reescrever o documento atual ("organize esse texto", "reescreva", "aplique no documento").
+- create_workspace: "criar workspace", "novo workspace". name opcional.
+- create_document: "criar página", "criar documento", "nova página". title opcional.
+- metric_question: APENAS "quantos documentos" ou "quantos workspaces". metric: "workspace_count" ou "document_count".
 
-Regras: use apenas intent quando não houver parâmetros. Para open_document, preencha documentTitle quando possível (da mensagem ou inferido do contexto). Para create_workspace use name (default "Novo Workspace"). Para create_document use title (default "Nova Página").`
+Resposta (só JSON):
+{"intent":"chat|open_document|edit_document|create_workspace|create_document|metric_question","documentTitle":null,"name":null,"title":null,"metric":null}
+Preencha só os campos que se aplicam à intent.`
 
 /** Classifica a intenção do usuário com IA (Groq). Retorna intent 'chat' em caso de erro ou parse inválido. */
 async function classifyChatIntent(params: {

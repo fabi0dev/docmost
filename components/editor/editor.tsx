@@ -8,7 +8,9 @@ import Link from '@tiptap/extension-link'
 import TextAlign from '@tiptap/extension-text-align'
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
+import Placeholder from '@tiptap/extension-placeholder'
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDocumentStore } from '@/stores/document-store'
 import { useWorkspaceStore } from '@/stores/workspace-store'
@@ -32,12 +34,18 @@ export function Editor() {
   const [editorContent, setEditorContent] = useState<any>(currentDocument?.content || null)
   const [lastSavedContent, setLastSavedContent] = useState<string | null>(null)
   const editorWrapperRef = useRef<HTMLDivElement>(null)
+  const titleInputRef = useRef<HTMLInputElement>(null)
+  const searchParams = useSearchParams()
   /** Ignora o próximo onUpdate vindo de setContent programático ou da montagem inicial do editor */
   const ignoreNextUpdateRef = useRef(true)
 
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Placeholder.configure({
+        placeholder: 'Digite "/" para comandos.',
+        showOnlyCurrent: true,
+      }),
       Underline,
       Link.configure({ openOnClick: false }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
@@ -203,6 +211,19 @@ export function Editor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedContent])
 
+  // Focar título ao abrir página nova (?focus=title)
+  useEffect(() => {
+    if (!currentDocument || searchParams.get('focus') !== 'title') return
+    const input = titleInputRef.current
+    if (input) {
+      input.focus()
+      input.select()
+      const url = new URL(window.location.href)
+      url.searchParams.delete('focus')
+      window.history.replaceState({}, '', url.pathname + url.search)
+    }
+  }, [currentDocument?.id, searchParams])
+
   if (!editor || !currentDocument) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -212,12 +233,31 @@ export function Editor() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col bg-background overflow-hidden animate-fade-in">
-      {/* Title */}
-      <div className="flex-shrink-0 border-b bg-gradient-to-r from-background via-background to-muted/10 shadow-sm">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between gap-4">
+    <div className="relative flex h-full w-full flex-col bg-background overflow-hidden animate-fade-in">
+      {/* Controles no canto superior direito da área do editor (abaixo do header da app) */}
+      <div className="absolute top-4 right-4 z-0 flex items-center gap-2">
+        <DocumentHeaderMenu
+          isReadOnly={isReadOnly}
+          onReadOnlyChange={setIsReadOnly}
+          fullWidth={fullWidth}
+          onFullWidthChange={setFullWidth}
+        />
+        <SaveStatus />
+      </div>
+
+      {/* Scroll do documento (título + conteúdo rolam juntos) */}
+      <div className="flex-1 min-h-0 overflow-y-auto bg-background animate-fade-in">
+        <div
+          className={cn(
+            'h-full transition-[max-width] duration-200',
+            // No modo largura total, dar mais respiro à esquerda (não ficar colado na sidebar)
+            fullWidth ? 'w-full pl-10 pr-6' : 'w-full max-w-2xl mx-auto px-6 sm:px-8'
+          )}
+        >
+          {/* Título (rola junto) */}
+          <div className="pt-6 pb-2 pr-48">
             <input
+              ref={titleInputRef}
               type="text"
               value={currentDocument.title}
               onChange={(e) => {
@@ -239,7 +279,6 @@ export function Editor() {
                     setIsDirty(false)
                     const updated = { ...currentDocument, title: result.data.title }
                     setCurrentDocument(updated)
-                    // Atualizar cache do React Query para refletir ao alternar páginas
                     queryClient.setQueryData(
                       queryKeys.documents.detail(workspaceId, currentDocument.id).queryKey,
                       (old: unknown) => (old ? { ...(old as object), ...updated } : updated)
@@ -254,24 +293,13 @@ export function Editor() {
                   setIsSaving(false)
                 }
               }}
-              className="flex-1 min-w-0 bg-transparent text-4xl font-bold outline-none placeholder:text-muted-foreground focus:text-primary transition-smooth"
+              className="w-full bg-transparent text-4xl font-bold outline-none placeholder:text-muted-foreground focus:text-primary transition-smooth"
               placeholder="Sem título"
             />
-            <DocumentHeaderMenu
-              isReadOnly={isReadOnly}
-              onReadOnlyChange={setIsReadOnly}
-              fullWidth={fullWidth}
-              onFullWidthChange={setFullWidth}
-            />
-            <SaveStatus />
           </div>
-        </div>
-      </div>
 
-      {/* Editor Content - Ocupa todo o espaço restante */}
-      <div className={cn('flex-1 relative overflow-y-auto bg-background min-h-0 animate-fade-in', fullWidth && 'max-w-none')}>
-        <div className={cn('py-8 h-full', fullWidth ? 'px-4' : 'pl-8 pr-8')}>
-          <div ref={editorWrapperRef} className="relative min-h-full">
+          {/* Conteúdo (com respiro no final) */}
+          <div ref={editorWrapperRef} className="relative min-h-full pt-2 pb-24">
             <BubbleMenu
               editor={editor}
               updateDelay={50}

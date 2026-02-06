@@ -23,7 +23,7 @@ interface UseChatSessionReturn {
   clearContext: () => Promise<void>
   listRef: React.RefObject<HTMLDivElement>
   handleSend: (overrideText?: string) => Promise<void>
-  handleKeyDown: React.KeyboardEventHandler<HTMLInputElement>
+  handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>
 }
 
 export function useChatSession({ open }: UseChatSessionProps): UseChatSessionReturn {
@@ -326,7 +326,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     }
   }
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (
+  const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (
     event,
   ) => {
     if (event.key === 'Enter' && !event.shiftKey) {

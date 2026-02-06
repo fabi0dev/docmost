@@ -6,13 +6,9 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { createDocument } from '@/app/actions/documents'
 import { useWorkspaceStore } from '@/stores/workspace-store'
+import { useUIStore } from '@/stores/ui-store'
 import { useToast } from '@/components/ui/use-toast'
-import {
-  Plus,
-  MagnifyingGlass,
-  FileText,
-  Star,
-} from '@phosphor-icons/react'
+import { Plus, MagnifyingGlass, FileText } from '@phosphor-icons/react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface Workspace {
@@ -38,14 +34,17 @@ interface RecentDocument {
 }
 
 export function HomePage({
+  userName,
   workspaces,
   recentDocuments,
 }: {
+  userName: string
   workspaces: Workspace[]
   recentDocuments: RecentDocument[]
 }) {
   const router = useRouter()
   const { toast } = useToast()
+  const setSearchOpen = useUIStore((s) => s.setSearchOpen)
   const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore()
   const [isCreating, setIsCreating] = useState(false)
 
@@ -62,22 +61,22 @@ export function HomePage({
     }
   }, [workspaces, currentWorkspace, setCurrentWorkspace])
 
-  const handleNewDocument = async () => {
+  const handleNewPage = async () => {
     const workspaceId = currentWorkspace?.id || workspaces[0]?.id
     if (!workspaceId) return
     setIsCreating(true)
     try {
       const result = await createDocument({
         workspaceId,
-        title: 'Novo Documento',
+        title: 'Nova Página',
       })
       if (result.data) {
-        toast({ title: 'Documento criado' })
-        router.push(`/workspace/${workspaceId}/${result.data.id}`)
+        toast({ title: 'Página criada' })
+        router.push(`/workspace/${workspaceId}/${result.data.id}?focus=title`)
       } else {
         toast({
           title: 'Erro',
-          description: result.error ?? 'Não foi possível criar o documento',
+          description: result.error ?? 'Não foi possível criar a página',
           variant: 'destructive',
         })
       }
@@ -92,103 +91,90 @@ export function HomePage({
 
   return (
     <div className="flex flex-1 flex-col w-full">
-      {/* Breadcrumbs */}
-      <div className="border-b px-6 py-3 animate-fade-in">
-        <div className="text-sm text-muted-foreground">
-          &gt; Home
-        </div>
+      <div className="border-b px-6 py-3">
+        <span className="text-sm text-muted-foreground">Início</span>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto flex">
-        <div className="w-full max-w-5xl mx-auto px-6 py-12 flex flex-col justify-center">
-          {/* Welcome Section */}
-          <div className="mb-12 text-center animate-fade-in-up">
-            <div className="mb-4 flex justify-center">
-              <div className="rounded-full bg-primary/10 p-4 transition-smooth hover:scale-110 hover:bg-primary/20">
-                <Star size={22} className="text-primary" weight="fill" />
-              </div>
-            </div>
-            <h1 className="mb-4 text-4xl font-bold">Bem-vindo ao Amby</h1>
-
-            <div className="flex justify-center gap-3">
+      <div className="flex-1 overflow-y-auto">
+        <div className="w-full max-w-3xl mx-auto px-6 py-8 flex flex-col gap-10">
+          {/* Saudação + ação principal */}
+          <section className="animate-fade-in-up">
+            <h1 className="text-2xl font-semibold text-foreground mb-6">
+              Olá, {userName}
+            </h1>
+            <div className="flex flex-wrap gap-2">
               <Button
-                onClick={handleNewDocument}
-                size="lg"
-                className="gap-2 transition-smooth hover:scale-105 active:scale-[0.98]"
+                onClick={handleNewPage}
+                size="default"
+                className="gap-2"
                 disabled={isCreating}
               >
                 {isCreating ? (
-                  <>
-                    <LoadingSpinner size="sm" className="h-5 w-5 border-current" />
-                    Criando...
-                  </>
+                  <LoadingSpinner size="sm" className="h-4 w-4 border-current" />
                 ) : (
-                  <>
-                    <Plus size={22} />
-                    Novo Documento
-                  </>
+                  <Plus size={18} />
                 )}
+                Nova página
               </Button>
-              <Button variant="outline" size="lg" className="gap-2 transition-smooth hover:scale-105 active:scale-[0.98]">
-                <MagnifyingGlass size={22} />
-                Ver Todos os Documentos
+              <Button
+                variant="outline"
+                size="default"
+                className="gap-2"
+                onClick={() => setSearchOpen(true)}
+              >
+                <MagnifyingGlass size={18} />
+                Buscar
               </Button>
             </div>
-          </div>
+          </section>
 
-          {/* Recent Documents */}
+          {/* Recentes */}
           {recentDocuments.length > 0 && (
-            <div className="animate-fade-in-up">
-              <h2 className="mb-4 text-xl font-semibold">Vistos recentemente</h2>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {recentDocuments.map((doc, index) => (
-                  <div
-                    key={doc.id}
-                    className="group rounded-lg border bg-card p-4 hover:shadow-md transition-smooth hover:scale-[1.02] hover:-translate-y-0.5 animate-stagger-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div className="mb-3 flex items-start justify-between">
-                      <h3 className="font-semibold line-clamp-2">{doc.title}</h3>
-                      <FileText size={22} className="text-muted-foreground flex-shrink-0" />
-                    </div>
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      {doc.workspace.name}
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full transition-smooth hover:scale-[1.02]"
+            <section className="animate-fade-in-up">
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                Recentes
+              </h2>
+              <ul className="space-y-1">
+                {recentDocuments.map((doc) => (
+                  <li key={doc.id}>
+                    <button
+                      type="button"
                       onClick={() => handleViewDocument(doc.workspace.id, doc.id)}
+                      className="flex items-center gap-3 w-full rounded-lg border bg-card px-4 py-3 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      Ver Detalhes
-                    </Button>
-                  </div>
+                      <FileText size={18} className="text-muted-foreground shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium truncate block">{doc.title}</span>
+                        <span className="text-xs text-muted-foreground">{doc.workspace.name}</span>
+                      </div>
+                    </button>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ul>
+            </section>
           )}
 
-          {/* Workspaces Section */}
+          {/* Espaços */}
           {workspaces.length > 0 && (
-            <div className="mt-12 animate-fade-in-up">
-              <h2 className="mb-4 text-xl font-semibold">Espaços de Trabalho</h2>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {workspaces.map((workspace, index) => (
+            <section className="animate-fade-in-up">
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                Seus espaços
+              </h2>
+              <ul className="space-y-1">
+                {workspaces.map((workspace) => (
                   <Link
                     key={workspace.id}
                     href={`/workspace/${workspace.id}`}
-                    className="block rounded-lg border bg-card p-4 hover:shadow-md transition-smooth hover:scale-[1.02] hover:-translate-y-0.5 cursor-pointer animate-stagger-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="flex items-center justify-between rounded-lg border bg-card px-4 py-3 hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <h3 className="mb-2 font-semibold">{workspace.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {workspace.documents.length} documento{workspace.documents.length !== 1 ? 's' : ''}
-                    </p>
+                    <span className="font-medium">{workspace.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {workspace.documents.length} página{workspace.documents.length !== 1 ? 's' : ''}
+                    </span>
                   </Link>
                 ))}
-              </div>
-            </div>
+              </ul>
+            </section>
           )}
         </div>
       </div>

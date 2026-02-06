@@ -129,6 +129,14 @@
   line-height: 1.75;
 }
 
+/* Placeholder na linha focada (TipTap Placeholder com showOnlyCurrent) */
+.ProseMirror .is-empty::before {
+  color: hsl(var(--muted-foreground));
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
 .ProseMirror p.is-editor-empty:first-child::before {
   color: hsl(var(--muted-foreground));
   content: attr(data-placeholder);
