@@ -10,6 +10,7 @@ import {
   Gear,
   Palette,
   SignOut,
+  SlidersHorizontal,
   User,
   Users,
 } from '@phosphor-icons/react'
@@ -110,7 +111,7 @@ export function UserMenu({ open, onOpenChange, trigger }: UserMenuProps) {
           className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-smooth rounded-md"
           onClick={() => onOpenChange(false)}
         >
-          <Palette size={22} />
+          <SlidersHorizontal size={22} />
           <span>Minhas preferências</span>
         </Link>
 

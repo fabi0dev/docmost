@@ -10,8 +10,8 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { User, Envelope, Lock, Trash } from '@phosphor-icons/react'
 import { updateUser, changePassword } from '@/app/actions/user'
 import { useToast } from '@/components/ui/use-toast'
-import { Toaster } from '@/components/ui/toaster'
 import { PageHeader } from '@/components/layout/page-header'
+import { SettingsSectionCard } from '@/components/ui/settings-section-card'
 
 export function UserSettingsPage() {
   const { data: session, update } = useSession()
@@ -127,12 +127,8 @@ export function UserSettingsPage() {
         <div className="w-full max-w-3xl px-6 py-8 md:px-8 animate-fade-in-up">
           {/* Perfil */}
           <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <User size={22} />
-                Informações do Perfil
-              </h2>
-              <div className="space-y-4 bg-card rounded-lg border p-6">
+            <SettingsSectionCard title="Informações do Perfil" icon={<User size={22} />}>
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome</Label>
                   <Input
@@ -161,17 +157,12 @@ export function UserSettingsPage() {
                   {isLoading ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </div>
-            </div>
+            </SettingsSectionCard>
 
             <Separator />
 
-            {/* Segurança */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Lock size={22} />
-                Segurança
-              </h2>
-              <div className="space-y-4 bg-card rounded-lg border p-6">
+            <SettingsSectionCard title="Segurança" icon={<Lock size={22} />}>
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="currentPassword">Senha Atual</Label>
                   <Input
@@ -206,17 +197,12 @@ export function UserSettingsPage() {
                   {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
                 </Button>
               </div>
-            </div>
+            </SettingsSectionCard>
 
             <Separator />
 
-            {/* Zona de Perigo */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4 text-destructive flex items-center gap-2">
-                <Trash size={22} />
-                Zona de Perigo
-              </h2>
-              <div className="space-y-4 bg-card rounded-lg border border-destructive/20 p-6">
+            <SettingsSectionCard title="Zona de Perigo" icon={<Trash size={22} />} danger>
+              <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold mb-2">Excluir Conta</h3>
                   <p className="text-sm text-muted-foreground mb-4">
@@ -233,7 +219,7 @@ export function UserSettingsPage() {
                   </Button>
                 </div>
               </div>
-            </div>
+            </SettingsSectionCard>
           </div>
         </div>
       </div>
@@ -247,7 +233,6 @@ export function UserSettingsPage() {
         loading={isDeletingAccount}
         onConfirm={handleConfirmDeleteAccount}
       />
-      <Toaster />
     </div>
   )
 }

@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getRequiredSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { MainLayout } from '@/components/layout/main-layout'
 import { WorkspaceSettingsPage } from '@/components/pages/workspace-settings-page'
@@ -10,11 +9,7 @@ export default async function WorkspaceSettingsRoute({
 }: {
   params: { workspaceId: string }
 }) {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user?.id) {
-    redirect('/login')
-  }
+  const session = await getRequiredSession()
 
   const workspace = await prisma.workspace.findFirst({
     where: {

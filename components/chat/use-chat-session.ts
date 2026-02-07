@@ -2,6 +2,7 @@ import type React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useWorkspaceStore } from '@/stores/workspace-store'
 import { useDocumentStore } from '@/stores/document-store'
+import { useWorkspaces } from '@/hooks/use-workspaces'
 import type { ChatMessage } from './chat-types'
 
 interface UseChatSessionProps {
@@ -29,6 +30,8 @@ interface UseChatSessionReturn {
 export function useChatSession({ open }: UseChatSessionProps): UseChatSessionReturn {
   const { currentWorkspace } = useWorkspaceStore()
   const { currentDocument } = useDocumentStore()
+  const { data: workspaces = [] } = useWorkspaces()
+  const firstWorkspace = workspaces[0]
 
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -51,9 +54,9 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
       return error
     }
     if (!currentWorkspace) {
-      return 'Você pode conversar aqui mesmo sem workspace. Para contexto da IA, selecione um workspace.'
+      return 'Conversa geral. Selecione um workspace para usar a documentação como contexto.'
     }
-    return 'Converse com a IA sobre este workspace.'
+    return 'Converse com a IA; pode usar a documentação do workspace quando relevante.'
   }, [currentWorkspace, error])
 
   useEffect(() => {
@@ -62,9 +65,12 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     listRef.current.scrollTop = listRef.current.scrollHeight
   }, [messages, open])
 
+  // Workspace para criar sessão: o selecionado ou o primeiro disponível (chat geral)
+  const workspaceForSession = currentWorkspace ?? firstWorkspace
+
   useEffect(() => {
     if (!open) return
-    if (!currentWorkspace) return
+    if (!workspaceForSession) return
 
     const ensureSessionAndMessages = async () => {
       try {
@@ -78,7 +84,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              workspaceId: currentWorkspace.id,
+              workspaceId: workspaceForSession.id,
               documentId: contextDetached ? null : (currentDocument?.id ?? null),
               title: currentDocument?.title ?? null,
             }),
@@ -154,39 +160,23 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     }
   }, [
     open,
-    currentWorkspace,
+    workspaceForSession,
     currentDocument?.id,
     currentDocument?.title,
     sessionId,
+    contextDetached,
   ])
 
   const handleSend = async (overrideText?: string) => {
     const text = (overrideText ?? input.trim()).trim()
     if (!text || isSending || isLoading) return
 
-    setError(null)
-
-    if (!currentWorkspace) {
-      const timestamp = new Date()
-      const userMessage: ChatMessage = {
-        id: `user-${timestamp.getTime()}`,
-        role: 'user',
-        content: text,
-        createdAt: timestamp,
-      }
-
-      const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content:
-          'Por enquanto estou respondendo sem o contexto de um workspace. Selecione um workspace para que eu consiga usar a documentação como referência nas próximas respostas.',
-        createdAt: new Date(),
-      }
-
-      setMessages((prev) => [...prev, userMessage, assistantMessage])
-      setInput('')
+    if (!workspaceForSession) {
+      setError('Crie ou selecione um workspace para enviar mensagens.')
       return
     }
+
+    setError(null)
 
     let id = sessionId
 
@@ -198,8 +188,8 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            workspaceId: currentWorkspace.id,
-            documentId: currentDocument?.id ?? null,
+            workspaceId: workspaceForSession.id,
+            documentId: contextDetached ? null : (currentDocument?.id ?? null),
             title: currentDocument?.title ?? null,
           }),
         })
@@ -242,20 +232,23 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
       const completionRes = await fetch(`/api/chat/sessions/${id}/completion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: historyForModel }),
+        body: JSON.stringify({
+          messages: historyForModel,
+          generalChat: !currentWorkspace,
+        }),
       })
 
       const completionData = (await completionRes
         .json()
         .catch(() => ({} as any))) as {
-        message?: string
-        documentMarkdown?: string
-        openDocument?: { workspaceId: string; documentId: string; documentTitle?: string }
-        suggestWorkspaceSearch?: boolean
-        workspaceSearchQuery?: string
-        chatAction?: { type: 'create_workspace'; name: string } | { type: 'create_document'; workspaceId: string; title: string }
-        error?: string
-      }
+          message?: string
+          documentMarkdown?: string
+          openDocument?: { workspaceId: string; documentId: string; documentTitle?: string }
+          suggestWorkspaceSearch?: boolean
+          workspaceSearchQuery?: string
+          chatAction?: { type: 'create_workspace'; name: string } | { type: 'create_document'; workspaceId: string; title: string }
+          error?: string
+        }
 
       if (!completionRes.ok) {
         const apiError =
@@ -361,7 +354,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ documentId: currentDocument.id }),
-    }).catch(() => {})
+    }).catch(() => { })
   }, [sessionId, contextDetached, currentDocument?.id])
 
   return {

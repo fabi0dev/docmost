@@ -36,3 +36,36 @@ export function useDocument(workspaceId: string, documentId: string) {
     enabled: !!workspaceId && !!documentId,
   })
 }
+
+export type DocumentVersionWithUser = Awaited<
+  ReturnType<typeof fetchDocumentVersions>
+>
+
+async function fetchDocumentVersions(
+  workspaceId: string,
+  documentId: string
+): Promise<
+  Array<{
+    id: string
+    documentId: string
+    userId: string
+    content: unknown
+    version: number
+    createdAt: string
+    user: { id: string; name: string | null; image: string | null }
+  }>
+> {
+  const res = await fetch(
+    `/api/documents/${workspaceId}/${documentId}/versions`
+  )
+  if (!res.ok) throw new Error('Erro ao buscar histórico')
+  return res.json()
+}
+
+export function useDocumentVersions(workspaceId: string, documentId: string) {
+  return useQuery({
+    queryKey: [...queryKeys.documents.versions(documentId).queryKey, workspaceId],
+    queryFn: () => fetchDocumentVersions(workspaceId, documentId),
+    enabled: !!workspaceId && !!documentId,
+  })
+}

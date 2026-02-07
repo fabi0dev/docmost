@@ -1,5 +1,7 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 import { Role } from '@prisma/client'
@@ -76,4 +78,16 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
+}
+
+/**
+ * Retorna a sessão atual ou redireciona para /login se não autenticado.
+ * Usar em Server Components e rotas de configuração (/settings/*).
+ */
+export async function getRequiredSession() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    redirect('/login')
+  }
+  return session
 }

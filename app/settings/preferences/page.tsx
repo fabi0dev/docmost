@@ -1,13 +1,13 @@
 import { getRequiredSession } from '@/lib/auth'
 import { MainLayout } from '@/components/layout/main-layout'
-import { UserSettingsPage } from '@/components/pages/user-settings-page'
+import { PreferencesPage } from '@/components/pages/preferences-page'
 
-export default async function UserSettingsRoute() {
+export default async function PreferencesSettingsRoute() {
   await getRequiredSession()
 
   return (
     <MainLayout>
-      <UserSettingsPage />
+      <PreferencesPage />
     </MainLayout>
   )
 }

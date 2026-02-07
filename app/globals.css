@@ -10,19 +10,19 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 217 91% 60%;
+    --primary: 250 68% 48%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 217 91% 60%;
+    --accent: 250 68% 48%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 60%;
+    --ring: 250 68% 48%;
     --radius: 0.5rem;
   }
 
@@ -33,20 +33,20 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
+    --primary: 250 58% 56%;
     --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 250 48% 32%;
     --accent-foreground: 210 40% 98%;
     /* Vermelho mais claro no dark para contraste em fundos escuros (popover, card) */
     --destructive: 0 72% 58%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 250 58% 56%;
   }
 }
 
@@ -63,29 +63,32 @@
   }
 }
 
-/* Lista de páginas (sidebar) – scroll contido e barra discreta */
-.document-tree-list {
-  scrollbar-gutter: stable;
-}
-.document-tree-list::-webkit-scrollbar {
+/* ========== Scrollbar global (todo o sistema – light/dark) ========== */
+*::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
-.document-tree-list::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: hsl(var(--muted) / 0.5);
   border-radius: 3px;
 }
-.document-tree-list::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground) / 0.35);
   border-radius: 3px;
 }
-.document-tree-list::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
 @supports (scrollbar-width: thin) {
-  .document-tree-list {
+  html {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted-foreground) / 0.35) hsl(var(--muted) / 0.5);
   }
+}
+
+/* Lista de páginas (sidebar) – reserva espaço da scrollbar */
+.document-tree-list {
+  scrollbar-gutter: stable;
 }
 
 /* Modal de busca (cmdk) – títulos das seções e alinhamento */
@@ -98,29 +101,14 @@
   color: hsl(var(--muted-foreground));
 }
 
-/* Chat – área de mensagens com scroll visível */
+/* Chat – área de mensagens (reserva espaço da scrollbar) */
 .chat-messages-scroll {
   scrollbar-gutter: stable;
 }
-.chat-messages-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-.chat-messages-scroll::-webkit-scrollbar-track {
-  background: hsl(var(--muted) / 0.5);
-  border-radius: 3px;
-}
-.chat-messages-scroll::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.35);
-  border-radius: 3px;
-}
-.chat-messages-scroll::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
-}
-@supports (scrollbar-width: thin) {
-  .chat-messages-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.35) hsl(var(--muted) / 0.5);
-  }
+
+/* Histórico da página – reserva espaço da scrollbar */
+.page-history-scroll {
+  scrollbar-gutter: stable;
 }
 
 /* TipTap Editor Styles */

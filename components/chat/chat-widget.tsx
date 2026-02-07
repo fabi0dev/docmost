@@ -4,6 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowsInSimple, ArrowsOutSimple, X } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import type { ChatWidgetProps, ChatAction, OpenDocumentAction } from './chat-types'
 import { useChatSession } from './use-chat-session'
 import { useChatApplyToDocument } from './use-chat-apply-to-document'
@@ -100,32 +106,37 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
         onClick={() => onOpenChange(false)}
       />
 
+      <TooltipProvider delayDuration={300}>
       <div
-        className={`fixed z-50 flex flex-col overflow-hidden rounded-2xl border bg-card shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isExpanded
+        className={`fixed z-50 flex flex-col overflow-hidden rounded-2xl border bg-card shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isExpanded
             ? 'inset-x-4 bottom-8 top-16 md:inset-x-auto md:right-10 md:bottom-10 md:top-auto md:h-[600px] md:w-[720px] md:max-w-[720px]'
             : 'bottom-6 right-6 w-full max-w-md md:max-w-lg min-h-[360px] md:min-h-[420px] max-h-[85vh]'
-        } ${open ? 'animate-fade-in-up' : ''}`}
+          } ${open ? 'animate-fade-in-up' : ''}`}
       >
         <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-card/80 px-4 py-2.5 backdrop-blur">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-semibold">Chat com IA</span>
               {contextDocumentTitle && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                <span className="max-w-[120px] truncate" title={contextDocumentTitle}>
-                  {contextDocumentTitle}
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                  <span className="max-w-[120px] truncate" title={contextDocumentTitle}>
+                    {contextDocumentTitle}
+                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => void clearContext()}
+                        className="rounded p-0.5 hover:bg-muted-foreground/20 hover:text-foreground"
+                        aria-label="Remover contexto"
+                      >
+                        <X size={12} weight="bold" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Remover contexto do documento</TooltipContent>
+                  </Tooltip>
                 </span>
-                <button
-                  type="button"
-                  onClick={() => void clearContext()}
-                  className="rounded p-0.5 hover:bg-muted-foreground/20 hover:text-foreground"
-                  aria-label="Remover contexto"
-                >
-                  <X size={12} weight="bold" />
-                </button>
-              </span>
-            )}
+              )}
             </div>
             {error && (
               <span className="truncate text-[11px] text-destructive">
@@ -134,28 +145,40 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
             )}
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              type="button"
-              onClick={() => setIsExpanded((prev) => !prev)}
-            >
-              {isExpanded ? (
-                <ArrowsInSimple size={18} />
-              ) : (
-                <ArrowsOutSimple size={18} />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              type="button"
-              onClick={() => onOpenChange(false)}
-            >
-              <X size={18} />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  type="button"
+                  onClick={() => setIsExpanded((prev) => !prev)}
+                >
+                  {isExpanded ? (
+                    <ArrowsInSimple size={18} />
+                  ) : (
+                    <ArrowsOutSimple size={18} />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {isExpanded ? 'Recolher' : 'Expandir'}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                >
+                  <X size={18} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Fechar chat</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -203,6 +226,7 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
           </>
         )}
       </div>
+      </TooltipProvider>
     </>
   )
 }

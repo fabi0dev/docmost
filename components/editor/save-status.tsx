@@ -1,10 +1,34 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useDocumentStore } from '@/stores/document-store'
-import { CheckCircle } from '@phosphor-icons/react'
+import { CheckCircle, WifiSlash } from '@phosphor-icons/react'
 
 export function SaveStatus() {
   const { isDirty, isSaving } = useDocumentStore()
+  const [isOnline, setIsOnline] = useState(
+    () => (typeof window !== 'undefined' ? navigator.onLine : true)
+  )
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  if (!isOnline) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <WifiSlash size={22} weight="duotone" />
+        <span className="font-medium">Sem conexão</span>
+      </div>
+    )
+  }
 
   if (isSaving || isDirty) {
     return (

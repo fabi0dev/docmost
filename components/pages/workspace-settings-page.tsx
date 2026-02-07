@@ -3,12 +3,12 @@
 import { useMemo, useState } from 'react'
 import { updateWorkspace } from '@/app/actions/workspace'
 import { useToast } from '@/components/ui/use-toast'
-import { Toaster } from '@/components/ui/toaster'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { SettingsSectionCard } from '@/components/ui/settings-section-card'
 import { Trash } from '@phosphor-icons/react'
 import { Role } from '@prisma/client'
 import { PageHeader } from '@/components/layout/page-header'
@@ -124,10 +124,8 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
       <div className="flex justify-center flex-shrink-0">
         <div className="w-full max-w-3xl px-6 py-8 md:px-8 animate-fade-in-up">
           <div className="space-y-10">
-            {/* Geral */}
-            <div>
-              <h2 className="text-xl font-semibold mb-6">Geral</h2>
-              <div className="space-y-8 bg-card rounded-lg border p-6">
+            <SettingsSectionCard title="Geral">
+              <div className="space-y-8">
                 <div className="flex items-center gap-4">
                   <div className="h-16 w-16 rounded-md bg-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
                     {workspaceInitials}
@@ -161,15 +159,10 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                   </Button>
                 </div>
               </div>
-            </div>
+            </SettingsSectionCard>
 
-            {/* Zona de Perigo */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4 text-destructive flex items-center gap-2">
-                <Trash size={22} />
-                Zona de Perigo
-              </h2>
-              <div className="space-y-4 bg-card rounded-lg border border-destructive/20 p-6">
+            <SettingsSectionCard title="Zona de Perigo" icon={<Trash size={22} />} danger>
+              <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold mb-2">Excluir Workspace</h3>
                   <p className="text-sm text-muted-foreground mb-4">
@@ -186,7 +179,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                   </Button>
                 </div>
               </div>
-            </div>
+            </SettingsSectionCard>
           </div>
         </div>
       </div>
@@ -200,7 +193,6 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
         loading={isDeleting}
         onConfirm={handleConfirmDeleteWorkspace}
       />
-      <Toaster />
     </div>
   )
 }

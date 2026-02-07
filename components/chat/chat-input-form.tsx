@@ -1,6 +1,11 @@
 import type React from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ChatInputFormProps {
   input: string
@@ -43,16 +48,23 @@ export function ChatInputForm({
           disabled={isLoading}
           rows={1}
         />
-        <Button
-          type="submit"
-          size="sm"
-          disabled={!input.trim() || isSending || isLoading}
-        >
-          Enviar
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex">
+              <Button
+                type="submit"
+                size="sm"
+                disabled={!input.trim() || isSending || isLoading}
+              >
+                Enviar
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">Enviar mensagem (Enter)</TooltipContent>
+        </Tooltip>
       </div>
       <p className="mt-1.5 text-[10px] text-muted-foreground/80">
-        Mensagens salvas no workspace. Enter envia; Shift+Enter nova linha.
+        Mensagens salvas na conversa. Enter envia; Shift+Enter nova linha.
       </p>
     </form>
   )

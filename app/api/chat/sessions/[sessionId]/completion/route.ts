@@ -540,8 +540,10 @@ export async function POST(
     const { chatSession } = access
 
     const body = await request.json()
-    const { messages } = body as {
+    const { messages, generalChat } = body as {
       messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
+      /** true quando o usuário está sem workspace/documento selecionado; a IA responde com conhecimento geral */
+      generalChat?: boolean
     }
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -808,7 +810,7 @@ export async function POST(
     }
 
     const systemPrompt = buildSystemPrompt({
-      workspaceName: chatSession.workspace.name,
+      workspaceName: chatSession.workspace?.name ?? null,
       documentTitle: chatSession.document?.title ?? null,
     })
 
@@ -821,7 +823,17 @@ export async function POST(
       systemMessage,
     ]
 
-    if (isEditRequest && chatSession.documentId) {
+    // Chat geral: sem workspace/documento em foco — responder com conhecimento geral
+    if (generalChat) {
+      contextMessages.push({
+        role: 'system',
+        content:
+          'O usuário está conversando sem um workspace ou documento específico. ' +
+          'Responda com naturalidade usando seu conhecimento geral. ' +
+          'Para perguntas de conceitos, definições ou temas gerais (ex: "o que é X?", "como funciona Y?"), responda normalmente. ' +
+          'Se o usuário pedir para consultar documentação ou algo dos workspaces dele, sugira que ele selecione um workspace ou documento na barra lateral para que você possa usar esse contexto.',
+      })
+    } else if (isEditRequest && chatSession.documentId) {
       const document = await prisma.document.findUnique({
         where: { id: chatSession.documentId },
       })
@@ -842,21 +854,23 @@ export async function POST(
         })
       }
     } else {
-      const documentsContext = lastUserMessage
-        ? await buildDocumentsContext({
-            userId: session.user.id,
-            documentId: chatSession.documentId,
-            userQuery: lastUserMessage.content,
-          })
-        : null
+      const documentsContext =
+        !generalChat && lastUserMessage
+          ? await buildDocumentsContext({
+              userId: session.user.id,
+              documentId: chatSession.documentId,
+              userQuery: lastUserMessage.content,
+            })
+          : null
 
       if (documentsContext?.hasDocuments) {
         contextMessages.push({
           role: 'system',
           content:
-            'Foram encontrados documentos relevantes na base de conhecimento dos workspaces do usuário. ' +
-            'Responda APENAS com base nas informações dos documentos abaixo. ' +
-            'Se alguma informação não estiver nos documentos, diga claramente que não está documentada nos workspaces do usuário.',
+            'Foram encontrados trechos da documentação dos workspaces do usuário relevantes à pergunta. ' +
+            'Use esse contexto QUANDO for relevante para responder. ' +
+            'Para perguntas gerais (conceitos, definições, dúvidas que não dependem da documentação), responda com seu conhecimento geral. ' +
+            'Só restrinja à documentação quando a pergunta for claramente sobre o conteúdo dos documentos; nesse caso, se a informação não estiver nos trechos abaixo, diga que não consta na documentação do usuário.',
         })
 
         contextMessages.push({
@@ -867,11 +881,10 @@ export async function POST(
         contextMessages.push({
           role: 'system',
           content:
-            'Nenhum documento relevante foi encontrado na base de conhecimento dos workspaces do usuário ' +
-            'para a pergunta atual. Você pode dar orientações genéricas, mas NÃO invente valores ' +
-            'específicos (como usuário, senha, URLs internas, tokens ou credenciais). ' +
-            'Se precisar citar informações específicas e elas não estiverem documentadas, diga apenas ' +
-            'que isso não está registrado na documentação dos workspaces do usuário.',
+            'Não há trechos de documentação relevantes para esta pergunta no momento. ' +
+            'Responda com naturalidade usando seu conhecimento geral. ' +
+            'Só diga que algo "não está documentado" ou "não consta na documentação" se o usuário perguntar explicitamente por informações que seriam da documentação interna dele (ex: credenciais, URLs internas, processos da empresa). ' +
+            'Para perguntas gerais (ex: "o que é kaizen?", "como fazer X?"), responda normalmente com o que você sabe.',
         })
       }
     }
