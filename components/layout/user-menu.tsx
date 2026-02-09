@@ -11,7 +11,6 @@ import {
   Palette,
   SignOut,
   SlidersHorizontal,
-  User,
   Users,
 } from '@phosphor-icons/react'
 import { useState, useRef, useEffect } from 'react'
@@ -82,8 +81,12 @@ export function UserMenu({ open, onOpenChange, trigger }: UserMenuProps) {
         <div className="px-4 pb-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase">Conta</p>
         </div>
-        <div className="px-4 pb-2 flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+        <Link
+          href="/settings/user"
+          className="flex w-full items-center gap-3 px-4 py-2 hover:bg-accent hover:text-accent-foreground transition-smooth rounded-md"
+          onClick={() => onOpenChange(false)}
+        >
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
             {session?.user?.name?.[0]?.toUpperCase() ||
               session?.user?.email?.[0]?.toUpperCase() ||
               '?'}
@@ -96,15 +99,6 @@ export function UserMenu({ open, onOpenChange, trigger }: UserMenuProps) {
               {session?.user?.email}
             </span>
           </div>
-        </div>
-
-        <Link
-          href="/settings/user"
-          className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-smooth rounded-md"
-          onClick={() => onOpenChange(false)}
-        >
-          <User size={22} />
-          <span>Meu perfil</span>
         </Link>
         <Link
           href="/settings/preferences"

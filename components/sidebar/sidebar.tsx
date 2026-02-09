@@ -14,6 +14,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { DocumentTree } from '@/components/tree/document-tree'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useWorkspaces } from '@/hooks/use-workspaces'
+import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,7 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [isCreatingPage, setIsCreatingPage] = useState(false)
+  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false)
   const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces()
 
   const handleSwitchWorkspace = (id: string, name: string) => {
@@ -78,7 +80,7 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
     <div className="flex h-full w-64 flex-col border-r bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-sm animate-fade-in">
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         <div className="flex flex-col flex-1 min-h-0 p-4 space-y-1">
-          {currentWorkspace && (
+          {currentWorkspace ? (
             <div className="flex flex-col flex-1 min-h-0 pt-2 space-y-4 animate-fade-in-up">
               {/* Seletor de workspace */}
               <div className="flex-shrink-0 px-1">
@@ -98,7 +100,7 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
                       <CaretDown size={16} className="shrink-0 text-muted-foreground" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-[12rem] max-w-[13rem]">
+                  <DropdownMenuContent align="start" className="min-w-[14rem] max-w-[16rem]">
                     {workspaces.map((w) => (
                       <DropdownMenuItem
                         key={w.id}
@@ -115,9 +117,21 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
                     ))}
                     {workspaces.length === 0 && !isLoadingWorkspaces && (
                       <DropdownMenuItem disabled>
-                        Nenhum workspace
+                        Nenhum workspace disponível
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuItem
+                      onClick={() => setIsCreateWorkspaceOpen(true)}
+                      className="mt-1 gap-2 border-t pt-2 text-sm"
+                    >
+                      <Plus size={16} className="shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="leading-snug">Novo workspace</span>
+                        <span className="text-[11px] text-muted-foreground leading-snug">
+                          Crie um espaço separado para outro time ou projeto.
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -163,10 +177,34 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
               </div>
               <DocumentTree workspaceId={currentWorkspace.id} workspaceName={currentWorkspace.name} />
             </div>
+          ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center px-4">
+              <div className="text-sm font-medium">Nenhum workspace selecionado</div>
+              <p className="text-xs text-muted-foreground max-w-[14rem]">
+                Crie um novo workspace para organizar documentos de um time ou projeto.
+              </p>
+              <Button
+                size="sm"
+                onClick={() => setIsCreateWorkspaceOpen(true)}
+                disabled={isLoadingWorkspaces}
+                className="mt-1"
+              >
+                <Plus size={18} className="mr-2" />
+                Criar workspace
+              </Button>
+            </div>
           )}
         </div>
       </div>
-
+      <CreateWorkspaceDialog
+        open={isCreateWorkspaceOpen}
+        onOpenChange={setIsCreateWorkspaceOpen}
+        onCreated={(workspace) => {
+          toast({ title: 'Workspace criado' })
+          setCurrentWorkspace({ id: workspace.id, name: workspace.name } as typeof currentWorkspace)
+          router.push(`/workspace/${workspace.id}`)
+        }}
+      />
     </div>
   )
 }

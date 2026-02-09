@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useQueryClient } from '@tanstack/react-query'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { diffLines, type Change } from 'diff'
 import Image from 'next/image'
 import { format, isToday, isYesterday } from 'date-fns'
@@ -14,6 +16,7 @@ import { queryKeys } from '@/lib/query-keys'
 import { getMarkdownFromContent } from '@/lib/document-content'
 import { updateDocument } from '@/app/actions/documents'
 import { useToast } from '@/components/ui/use-toast'
+import { cn } from '@/lib/utils'
 
 function formatVersionDate(dateStr: string): string {
   const d = new Date(dateStr)
@@ -43,6 +46,259 @@ function getChangeHunks(changes: Change[]): number {
   return hunks
 }
 
+function HistoryMarkdown({
+  markdown,
+  className,
+}: {
+  markdown: string
+  className?: string
+}) {
+  if (!markdown) return null
+
+  return (
+    <div
+      className={cn(
+        'history-formatted text-sm text-foreground [&_h1]:mb-3 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-semibold [&_h1:first-child]:mt-0 [&_h2]:mb-2 [&_h2]:mt-3 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mb-1.5 [&_h3]:mt-2 [&_h3]:text-sm [&_h3]:font-medium [&_p]:my-2 [&_p:first-child]:mt-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-0.5 [&_blockquote]:border-l-4 [&_blockquote]:border-muted-foreground/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:text-xs',
+        className
+      )}
+    >
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+    </div>
+  )
+}
+
+type HistoryVersionListProps = {
+  versions: DocumentVersionWithUser
+  selectedVersion: DocumentVersionWithUser[number] | null
+  isLoading: boolean
+  isRestoring: boolean
+  onSelectVersion: (version: DocumentVersionWithUser[number]) => void
+  onCancel: () => void
+  onRestore: () => void
+}
+
+function HistoryVersionList({
+  versions,
+  selectedVersion,
+  isLoading,
+  isRestoring,
+  onSelectVersion,
+  onCancel,
+  onRestore,
+}: HistoryVersionListProps) {
+  const hasVersions = versions.length > 0
+
+  return (
+    <div className="flex w-72 shrink-0 flex-col border-r bg-muted/30">
+      {isLoading ? (
+        <div className="flex flex-1 items-center justify-center p-4 text-sm text-muted-foreground">
+          Carregando...
+        </div>
+      ) : !hasVersions ? (
+        <div className="flex flex-1 items-center justify-center p-4 text-center text-sm text-muted-foreground">
+          Nenhuma versão anterior.
+        </div>
+      ) : (
+        <div className="page-history-scroll flex-1 overflow-y-auto p-2">
+          {versions.map((v) => {
+            const meta =
+              v.metadata && typeof v.metadata === 'object'
+                ? (v.metadata as {
+                    fromWorkspaceName?: string | null
+                    toWorkspaceName?: string | null
+                  })
+                : {}
+
+            const movedLabel =
+              v.event === 'moved'
+                ? meta.fromWorkspaceName && meta.toWorkspaceName
+                  ? `Página movida de ${meta.fromWorkspaceName} para ${meta.toWorkspaceName}`
+                  : 'Página movida para outro espaço'
+                : null
+
+            const isSelected = selectedVersion?.id === v.id
+
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => onSelectVersion(v)}
+                className={cn(
+                  'mb-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors',
+                  isSelected ? 'bg-primary/15 text-primary' : 'hover:bg-muted'
+                )}
+              >
+                <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
+                  {v.user.image ? (
+                    <Image
+                      src={v.user.image}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="32px"
+                    />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center text-xs font-medium text-muted-foreground">
+                      {(v.user.name ?? '?').slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                </span>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate font-medium text-foreground">
+                      {v.user.name ?? 'Usuário'}
+                    </p>
+                    <span className="flex-shrink-0 text-[11px] text-muted-foreground">
+                      {formatVersionDate(v.createdAt)}
+                    </span>
+                  </div>
+                  {movedLabel && (
+                    <div className="flex items-center gap-1">
+                      <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+                        Movida
+                      </span>
+                      <span className="truncate text-[11px] text-muted-foreground">
+                        {movedLabel}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {hasVersions && (
+        <div className="flex shrink-0 gap-2 border-t p-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={onCancel}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="flex-1"
+            disabled={!selectedVersion || isRestoring}
+            onClick={onRestore}
+          >
+            {isRestoring ? 'Restaurando...' : 'Restaurar'}
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+type HistoryContentProps = {
+  selectedVersion: DocumentVersionWithUser[number] | null
+  highlightChanges: boolean
+  onHighlightChangesChange: (value: boolean) => void
+  diffChanges: Change[] | null
+  selectedIndex: number
+  totalHunks: number
+  currentHunk: number
+  changeIndex: number
+  setChangeIndex: (updater: (prev: number) => number) => void
+  selectedMarkdown: string
+}
+
+function HistoryContent({
+  selectedVersion,
+  highlightChanges,
+  onHighlightChangesChange,
+  diffChanges,
+  selectedIndex,
+  totalHunks,
+  currentHunk,
+  changeIndex,
+  setChangeIndex,
+  selectedMarkdown,
+}: HistoryContentProps) {
+  if (!selectedVersion) {
+    return (
+      <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+        Selecione uma versão para visualizar
+      </div>
+    )
+  }
+
+  const showDiff = highlightChanges && diffChanges && selectedIndex >= 0
+
+  return (
+    <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b px-4 py-2">
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={highlightChanges}
+            onChange={(e) => onHighlightChangesChange(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          Destacar alterações
+        </label>
+        {highlightChanges && totalHunks > 0 && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              {currentHunk} de {totalHunks}
+            </span>
+            <button
+              type="button"
+              className="rounded p-1 hover:bg-muted disabled:opacity-40"
+              onClick={() => setChangeIndex((i) => Math.max(0, i - 1))}
+              disabled={changeIndex <= 0}
+              aria-label="Alteração anterior"
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              className="rounded p-1 hover:bg-muted disabled:opacity-40"
+              onClick={() =>
+                setChangeIndex((i) => Math.min(totalHunks - 1, i + 1))
+              }
+              disabled={changeIndex >= totalHunks - 1}
+              aria-label="Próxima alteração"
+            >
+              ▼
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="page-history-scroll flex-1 overflow-y-auto p-4">
+        {showDiff ? (
+          <div className="space-y-3">
+            {diffChanges!.map((part, i) => {
+              const diffClassName = part.added
+                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                : part.removed
+                ? 'bg-red-500/20 text-red-700 dark:text-red-400'
+                : undefined
+
+              return (
+                <HistoryMarkdown
+                  key={i}
+                  markdown={part.value}
+                  className={diffClassName}
+                />
+              )
+            })}
+          </div>
+        ) : selectedMarkdown ? (
+          <HistoryMarkdown markdown={selectedMarkdown} />
+        ) : (
+          <p className="text-sm text-muted-foreground">(vazio)</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function PageHistoryModal({
   open,
   onOpenChange,
@@ -60,7 +316,7 @@ export function PageHistoryModal({
   )
   const [selectedVersion, setSelectedVersion] =
     useState<DocumentVersionWithUser[number] | null>(null)
-  const [highlightChanges, setHighlightChanges] = useState(true)
+  const [highlightChanges, setHighlightChanges] = useState(false)
   const [changeIndex, setChangeIndex] = useState(0)
   const queryClient = useQueryClient()
   const { toast } = useToast()
@@ -149,7 +405,7 @@ export function PageHistoryModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-50 flex h-[85vh] w-[90vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border bg-background shadow-xl focus:outline-none animate-scale-in"
+          className="fixed left-1/2 top-1/2 z-50 flex h-[90vh] w-[95vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border bg-background shadow-xl focus:outline-none animate-scale-in"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
@@ -168,169 +424,31 @@ export function PageHistoryModal({
           </div>
 
           <div className="flex min-h-0 flex-1 overflow-hidden">
-            {/* Coluna esquerda: lista de versões */}
-            <div className="flex w-64 shrink-0 flex-col border-r bg-muted/30">
-              {isLoading ? (
-                <div className="flex flex-1 items-center justify-center p-4 text-sm text-muted-foreground">
-                  Carregando...
-                </div>
-              ) : displayVersions.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center p-4 text-center text-sm text-muted-foreground">
-                  Nenhuma versão anterior.
-                </div>
-              ) : (
-                <div className="page-history-scroll flex-1 overflow-y-auto p-2">
-                  {displayVersions.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedVersion(v)
-                        setChangeIndex(0)
-                      }}
-                      className={`mb-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors ${
-                        selectedVersion?.id === v.id
-                          ? 'bg-primary/15 text-primary'
-                          : 'hover:bg-muted'
-                      }`}
-                    >
-                      <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
-                        {v.user.image ? (
-                          <Image
-                            src={v.user.image}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="32px"
-                          />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-xs font-medium text-muted-foreground">
-                            {(v.user.name ?? '?').slice(0, 1).toUpperCase()}
-                          </span>
-                        )}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-foreground">
-                          {v.user.name ?? 'Usuário'}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {formatVersionDate(v.createdAt)}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {displayVersions.length > 0 && (
-                <div className="flex shrink-0 gap-2 border-t p-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="flex-1"
-                    disabled={!selectedVersion || isRestoring}
-                    onClick={() => void handleRestore()}
-                  >
-                    {isRestoring ? 'Restaurando...' : 'Restaurar'}
-                  </Button>
-                </div>
-              )}
-            </div>
+            <HistoryVersionList
+              versions={displayVersions}
+              selectedVersion={selectedVersion}
+              isLoading={isLoading}
+              isRestoring={isRestoring}
+              onSelectVersion={(v) => {
+                setSelectedVersion(v)
+                setChangeIndex(0)
+              }}
+              onCancel={() => onOpenChange(false)}
+              onRestore={() => void handleRestore()}
+            />
 
-            {/* Coluna direita: preview / diff */}
-            <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
-              {selectedVersion ? (
-                <>
-                  <div className="flex shrink-0 items-center justify-between gap-2 border-b px-4 py-2">
-                    <label className="flex cursor-pointer items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={highlightChanges}
-                        onChange={(e) =>
-                          setHighlightChanges(e.target.checked)
-                        }
-                        className="h-4 w-4 rounded border-input"
-                      />
-                      Destacar alterações
-                    </label>
-                    {highlightChanges && totalHunks > 0 && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>
-                          {currentHunk} de {totalHunks}
-                        </span>
-                        <button
-                          type="button"
-                          className="rounded p-1 hover:bg-muted"
-                          onClick={() =>
-                            setChangeIndex((i) => Math.max(0, i - 1))
-                          }
-                          disabled={changeIndex <= 0}
-                          aria-label="Alteração anterior"
-                        >
-                          ▲
-                        </button>
-                        <button
-                          type="button"
-                          className="rounded p-1 hover:bg-muted"
-                          onClick={() =>
-                            setChangeIndex((i) =>
-                              Math.min(totalHunks - 1, i + 1)
-                            )
-                          }
-                          disabled={changeIndex >= totalHunks - 1}
-                          aria-label="Próxima alteração"
-                        >
-                          ▼
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="page-history-scroll flex-1 overflow-y-auto p-4">
-                    {highlightChanges && diffChanges && selectedIndex >= 0 ? (
-                      <pre className="whitespace-pre-wrap break-words font-sans text-sm">
-                        {diffChanges.map((part, i) => {
-                          if (part.added)
-                            return (
-                              <span
-                                key={i}
-                                className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
-                              >
-                                {part.value}
-                              </span>
-                            )
-                          if (part.removed)
-                            return (
-                              <span
-                                key={i}
-                                className="bg-red-500/20 text-red-700 dark:text-red-400"
-                              >
-                                {part.value}
-                              </span>
-                            )
-                          return <span key={i}>{part.value}</span>
-                        })}
-                      </pre>
-                    ) : (
-                      <pre className="whitespace-pre-wrap break-words font-sans text-sm text-foreground">
-                        {selectedMarkdown || '(vazio)'}
-                      </pre>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-                  Selecione uma versão para visualizar
-                </div>
-              )}
-            </div>
+            <HistoryContent
+              selectedVersion={selectedVersion}
+              highlightChanges={highlightChanges}
+              onHighlightChangesChange={setHighlightChanges}
+              diffChanges={diffChanges}
+              selectedIndex={selectedIndex}
+              totalHunks={totalHunks}
+              currentHunk={currentHunk}
+              changeIndex={changeIndex}
+              setChangeIndex={setChangeIndex}
+              selectedMarkdown={selectedMarkdown}
+            />
           </div>
         </Dialog.Content>
       </Dialog.Portal>

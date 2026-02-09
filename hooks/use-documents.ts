@@ -52,6 +52,8 @@ async function fetchDocumentVersions(
     content: unknown
     version: number
     createdAt: string
+    event?: string | null
+    metadata?: unknown
     user: { id: string; name: string | null; image: string | null }
   }>
 > {

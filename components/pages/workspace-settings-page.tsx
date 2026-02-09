@@ -12,6 +12,8 @@ import { SettingsSectionCard } from '@/components/ui/settings-section-card'
 import { Trash } from '@phosphor-icons/react'
 import { Role } from '@prisma/client'
 import { PageHeader } from '@/components/layout/page-header'
+import { useRouter } from 'next/navigation'
+import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog'
 
 interface WorkspaceSettingsPageProps {
   workspace: {
@@ -34,9 +36,11 @@ interface WorkspaceSettingsPageProps {
 
 export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps) {
   const { toast } = useToast()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false)
   const [name, setName] = useState(workspace.name)
   const [description, setDescription] = useState(workspace.description || '')
 
@@ -118,6 +122,15 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
         title="Configurações do Espaço"
         description="Gerencie as configurações e membros do workspace"
         showBackButton
+        actions={
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsCreateWorkspaceOpen(true)}
+          >
+            Novo workspace
+          </Button>
+        }
       />
 
       {/* Content - altura natural; scroll fica no MainLayout */}
@@ -192,6 +205,17 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
         cancelLabel="Cancelar"
         loading={isDeleting}
         onConfirm={handleConfirmDeleteWorkspace}
+      />
+      <CreateWorkspaceDialog
+        open={isCreateWorkspaceOpen}
+        onOpenChange={setIsCreateWorkspaceOpen}
+        onCreated={(newWorkspace) => {
+          toast({
+            title: 'Workspace criado',
+            description: 'Você foi redirecionado para o novo espaço.',
+          })
+          router.push(`/workspace/${newWorkspace.id}`)
+        }}
       />
     </div>
   )

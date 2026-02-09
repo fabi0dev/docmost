@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { MainLayoutContent } from './main-layout-content'
 import { Toaster } from '@/components/ui/toaster'
 import { SearchModal } from '@/components/search/search-modal'
-import { ChatWidget } from '@/components/chat/chat-widget'
+import { ChatDock } from '@/components/chat/chat-dock'
 import { useUIStore } from '@/stores/ui-store'
 
 interface MainLayoutProps {
@@ -28,7 +28,6 @@ function useSearchPortalContainer() {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const [chatOpen, setChatOpen] = useState(false)
   const searchOpen = useUIStore((s) => s.searchOpen)
   const setSearchOpen = useUIStore((s) => s.setSearchOpen)
   const searchPortalContainer = useSearchPortalContainer()
@@ -50,12 +49,10 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="flex h-screen flex-col bg-background overflow-hidden">
         <MainLayoutContent
           onSearchOpen={setSearchOpen}
-          onChatOpen={setChatOpen}
-          chatOpen={chatOpen}
         >
           {children}
         </MainLayoutContent>
-        <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
+        <ChatDock />
         <Toaster />
       </div>
 

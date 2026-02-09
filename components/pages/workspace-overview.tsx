@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDocumentTree } from '@/hooks/use-documents'
 import { FileText, Clock } from '@phosphor-icons/react'
-import { cn } from '@/lib/utils'
+import { cn, formatRecentDate } from '@/lib/utils'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface TreeDocument {
@@ -12,34 +12,6 @@ interface TreeDocument {
   title: string
   slug: string
   updatedAt: string
-}
-
-function formatRecentDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
-  const docDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-
-  const timeFormatted = date.toLocaleTimeString('pt-BR', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).replace(/\s/g, '')
-
-  if (docDay.getTime() === today.getTime()) {
-    return `Hoje, ${timeFormatted}`
-  }
-  if (docDay.getTime() === yesterday.getTime()) {
-    return `Ontem, ${timeFormatted}`
-  }
-  return date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 }
 
 export function WorkspaceOverview({ workspaceId }: { workspaceId: string }) {

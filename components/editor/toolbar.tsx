@@ -28,6 +28,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Input } from '@/components/ui/input'
 
 /** Dropdown sem Portal: posiciona com CSS (absolute abaixo do trigger) para funcionar dentro do BubbleMenu */
 function ToolbarDropdown({
@@ -172,11 +174,46 @@ function getCurrentAlignment(editor: Editor): 'left' | 'center' | 'right' | 'jus
 }
 
 export function Toolbar({ editor }: ToolbarProps) {
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
+  const [linkUrl, setLinkUrl] = useState('')
+
   if (!editor) return null
 
   const hasSetTextAlign = typeof (editor.commands as any).setTextAlign === 'function'
   const hasToggleUnderline = typeof (editor.commands as any).toggleUnderline === 'function'
   const hasSetLink = typeof (editor.commands as any).setLink === 'function'
+
+  const handleOpenLinkDialog = () => {
+    if (!hasSetLink) return
+    const currentHref = (editor.getAttributes('link').href as string | undefined) ?? ''
+    setLinkUrl(currentHref)
+    setIsLinkDialogOpen(true)
+  }
+
+  const handleApplyLink = () => {
+    if (!hasSetLink) {
+      setIsLinkDialogOpen(false)
+      return
+    }
+
+    const trimmed = linkUrl.trim()
+    if (!trimmed) {
+      // Remove link se o campo ficar vazio
+      if (typeof (editor.commands as any).unsetLink === 'function') {
+        ;(editor.commands as any).unsetLink()
+      }
+      setIsLinkDialogOpen(false)
+      return
+    }
+
+    let normalized = trimmed
+    if (!/^https?:\/\//i.test(normalized)) {
+      normalized = `https://${normalized}`
+    }
+
+    ;(editor.commands as any).setLink({ href: normalized })
+    setIsLinkDialogOpen(false)
+  }
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -375,10 +412,7 @@ export function Toolbar({ editor }: ToolbarProps) {
                   'h-7 w-7 shrink-0 rounded-md text-foreground hover:bg-primary/10 hover:text-primary',
                   editor.isActive('link') && 'bg-primary/15 text-primary'
                 )}
-                onClick={() => {
-                  const url = window.prompt('URL do link:', editor.getAttributes('link').href || 'https://')
-                  if (url) (editor.commands as any).setLink({ href: url })
-                }}
+                onClick={handleOpenLinkDialog}
               >
                 <LinkIcon size={22} />
               </Button>
@@ -423,6 +457,47 @@ export function Toolbar({ editor }: ToolbarProps) {
           <TooltipContent side="top">Comentário (em breve)</TooltipContent>
         </Tooltip>
       </div>
+      <Dialog.Root open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 focus:outline-none">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleApplyLink()
+              }}
+              className="rounded-lg border bg-background p-5 shadow-lg animate-scale-in space-y-4"
+            >
+              <div className="space-y-1">
+                <Dialog.Title className="text-base font-semibold text-foreground">
+                  Inserir link
+                </Dialog.Title>
+                <Dialog.Description className="text-sm text-muted-foreground">
+                  Cole ou digite a URL para vincular ao texto selecionado.
+                </Dialog.Description>
+              </div>
+              <Input
+                autoFocus
+                placeholder="https://exemplo.com"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsLinkDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  Aplicar
+                </Button>
+              </div>
+            </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </TooltipProvider>
   )
 }

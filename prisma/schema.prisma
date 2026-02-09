@@ -195,6 +195,8 @@ model DocumentVersion {
   content    Json
   version    Int
   createdAt  DateTime @default(now())
+  event      String?  // Ex: "updated", "moved", "restored"
+  metadata   Json?
 
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)

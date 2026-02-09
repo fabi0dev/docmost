@@ -1,18 +1,28 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { useDocumentTree } from "@/hooks/use-documents"
 import { useDocumentStore } from "@/stores/document-store"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { createDocument, deleteDocument } from "@/app/actions/documents"
+import { createDocument, deleteDocument, duplicateDocument, exportDocumentAsMarkdown } from "@/app/actions/documents"
 import { useQueryClient } from "@tanstack/react-query"
 import { queryKeys } from "@/lib/query-keys"
 import { useToast } from "@/components/ui/use-toast"
-import { DotsThree, Plus } from "@phosphor-icons/react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { DotsThree, Plus, MagnifyingGlass } from "@phosphor-icons/react"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { MovePageDialog } from "@/components/workspace/move-page-dialog"
 
 interface TreeNode {
   id: string
@@ -35,42 +45,18 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const isActive = currentDocument?.id === node.document.id
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const menuContainerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!isMenuOpen) return
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (menuContainerRef.current?.contains(e.target as Node)) return
-      setIsMenuOpen(false)
-    }
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsMenuOpen(false)
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    document.addEventListener("touchstart", handleClickOutside)
-    document.addEventListener("keydown", handleEscape)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-      document.removeEventListener("touchstart", handleClickOutside)
-      document.removeEventListener("keydown", handleEscape)
-    }
-  }, [isMenuOpen])
+  const [isDuplicating, setIsDuplicating] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false)
 
   const handleClick = async () => {
     router.push(`/workspace/${workspaceId}/${node.document.id}`)
   }
 
-  const handleToggleMenu = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsMenuOpen((prev) => !prev)
-  }
-
   const handleDeleteDocument = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setIsMenuOpen(false)
     setIsConfirmOpen(true)
   }
 
@@ -100,64 +86,129 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
     }
   }
 
+  const handleDuplicate = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (isDuplicating) return
+    setIsDuplicating(true)
+    try {
+      const result = await duplicateDocument({ documentId: node.documentId })
+      if (result.error || !result.data) {
+        toast({
+          title: "Erro",
+          description: result.error ?? "Não foi possível duplicar a página",
+          variant: "destructive",
+        })
+        return
+      }
+      toast({ title: "Página duplicada" })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+      })
+      router.push(`/workspace/${workspaceId}/${result.data.id}`)
+    } finally {
+      setIsDuplicating(false)
+    }
+  }
+
+  const handleExportMarkdown = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (isExporting) return
+    setIsExporting(true)
+    try {
+      const result = await exportDocumentAsMarkdown(node.documentId)
+      if (result.error || !result.data) {
+        toast({
+          title: "Erro",
+          description: result.error ?? "Não foi possível exportar a página",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const { markdown, title } = result.data
+      const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `${title || "pagina"}.md`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      toast({ title: "Página exportada como Markdown" })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
-    <div className="select-none" ref={menuContainerRef}>
+    <div className="select-none">
       <div
         className={`relative flex items-center gap-2 rounded-md px-2 py-1.5 transition-smooth group cursor-pointer ${isActive
-          ? "bg-primary/20 border-l-2 border-primary text-primary"
-          : "hover:bg-primary/10"
+          ? "bg-primary/15 text-primary ring-1 ring-primary/60"
+          : "hover:bg-muted/40"
           }`}
-        style={{ paddingLeft: `${node.depth * 16 + 8}px` }}
+        style={{ paddingLeft: `${node.depth * 14 + 6}px` }}
       >
-        <span
-          className={`text-xs transition-smooth ${isActive
-            ? "text-primary"
-            : "text-primary/60 group-hover:text-primary"
+        <button
+          onClick={handleClick}
+          title={node.document.title}
+          className={`flex-1 min-w-0 text-left text-[13px] font-medium transition-smooth truncate block ${isActive ? "text-primary font-semibold" : "text-foreground/90 hover:text-primary"
             }`}
         >
-          •
-        </span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={handleClick}
-              className={`flex-1 min-w-0 text-left text-sm font-medium transition-smooth truncate block ${isActive
-                ? "text-primary font-semibold"
-                : "text-foreground hover:text-primary"
-                }`}
-            >
-              {node.document.title}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={8}>
-            {node.document.title}
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
+          {node.document.title}
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className={`h-6 w-6 transition-smooth hover:scale-110 hover:bg-primary/20 hover:text-primary ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              className={`h-6 w-6 transition-smooth hover:bg-primary/20 hover:text-primary ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                 }`}
-              onClick={handleToggleMenu}
+              aria-label="Mais opções da página"
+              onClick={(e) => e.stopPropagation()}
             >
-              <DotsThree size={22} weight="bold" />
+              <DotsThree size={18} weight="bold" />
             </Button>
-          </TooltipTrigger>
-          <TooltipContent>Mais opções</TooltipContent>
-        </Tooltip>
-
-        {isMenuOpen && (
-          <div className="absolute right-2 top-8 z-20 min-w-[140px] rounded-md border bg-popover py-1 shadow-lg animate-in animate-scale-in origin-top-right">
-            <button
-              className="flex w-full items-center px-3 py-1.5 text-left text-sm text-destructive transition-smooth hover:bg-destructive/10 rounded-sm mx-1"
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[160px]">
+            <DropdownMenuItem className="text-[13px]" onClick={handleExportMarkdown}>
+              Exportar página
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-[13px]" onClick={handleDuplicate} disabled={isDuplicating}>
+              {isDuplicating ? "Duplicando..." : "Duplicar"}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-[13px]"
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsMoveDialogOpen(true)
+              }}
+            >
+              Mover
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-[13px] text-muted-foreground"
+              onClick={(e) => {
+                e.stopPropagation()
+                toast({
+                  title: "Copiar para o espaço",
+                  description: "Funcionalidade de copiar página para outro espaço ainda não está disponível.",
+                })
+              }}
+            >
+              Copiar para o espaço
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive text-[13px]"
               onClick={handleDeleteDocument}
             >
               Excluir página
-            </button>
-          </div>
-        )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <ConfirmDialog
@@ -169,6 +220,22 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
         cancelLabel="Cancelar"
         loading={isDeleting}
         onConfirm={handleConfirmDelete}
+      />
+      <MovePageDialog
+        open={isMoveDialogOpen}
+        onOpenChange={setIsMoveDialogOpen}
+        documentId={node.documentId}
+        documentTitle={node.document.title}
+        currentWorkspaceId={workspaceId}
+        onMoved={(targetWorkspaceId) => {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+          })
+          if (currentDocument?.id === node.document.id) {
+            router.push(`/workspace/${targetWorkspaceId}/${node.document.id}`)
+          }
+          toast({ title: "Página movida" })
+        }}
       />
     </div>
   )
@@ -186,6 +253,17 @@ export function DocumentTree({
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [isCreating, setIsCreating] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isFilterVisible, setIsFilterVisible] = useState(false)
+
+  const normalizedFilter = searchTerm.trim().toLowerCase()
+  const hasDocuments = !!tree && tree.length > 0
+  const filteredTree =
+    hasDocuments && normalizedFilter.length > 0
+      ? tree!.filter((node: TreeNode) =>
+        node.document.title.toLowerCase().includes(normalizedFilter)
+      )
+      : tree
 
   const handleCreateDocument = async () => {
     setIsCreating(true)
@@ -214,65 +292,113 @@ export function DocumentTree({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex flex-col flex-1 min-h-0 space-y-2">
-        <div className="flex items-center justify-between px-1 flex-shrink-0">
+      <div className="flex flex-col flex-1 min-h-0 space-y-2 overflow-y-auto">
+        <div className="flex items-center justify-between px-1 pt-1 flex-shrink-0">
           {workspaceName ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-[140px]">
+                <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-[140px]">
                   Páginas
                 </h2>
               </TooltipTrigger>
               <TooltipContent>{workspaceName}</TooltipContent>
             </Tooltip>
           ) : (
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-[140px]">
+            <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-[140px]">
               Páginas
             </h2>
           )}
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 hover:bg-primary/10 hover:text-primary hover:scale-110 transition-smooth"
+                className="h-6 w-6 hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-smooth"
+                aria-label="Opções de páginas"
+              >
+                <DotsThree size={18} weight="bold" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[210px]">
+              <DropdownMenuLabel className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Ações de páginas
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="flex items-center gap-2 text-xs"
                 onClick={handleCreateDocument}
                 disabled={isCreating}
-                aria-label={isCreating ? "Criando..." : "Nova página"}
               >
                 {isCreating ? (
                   <LoadingSpinner size="sm" />
                 ) : (
-                  <Plus size={22} />
+                  <Plus size={14} />
                 )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{isCreating ? "Criando..." : "Nova página"}</TooltipContent>
-          </Tooltip>
+                <span className="flex-1">Nova página</span>
+                <span className="text-[10px] text-muted-foreground tracking-wide">N</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="flex items-center gap-2 text-xs"
+                onClick={() => {
+                  setIsFilterVisible((prev) => {
+                    const next = !prev
+                    if (!next) setSearchTerm("")
+                    return next
+                  })
+                }}
+              >
+                <MagnifyingGlass size={14} className="text-muted-foreground" />
+                <span className="flex-1">
+                  {isFilterVisible ? "Ocultar filtro de páginas" : "Mostrar filtro de páginas"}
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-      <div className="document-tree-list flex-1 min-h-0 overflow-y-auto overflow-x-hidden rounded-md border border-border/50 bg-muted/30 py-1 pr-1 transition-smooth">
-        {isLoading ? (
-          <div className="p-2 text-sm text-muted-foreground animate-pulse">Carregando...</div>
-        ) : tree && tree.length > 0 ? (
-          <div className="space-y-0.5 pl-1">
-            {tree.map((node: TreeNode, index: number) => (
-              <div
-                key={node.id}
-                className="animate-stagger-in"
-                style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
-              >
-                <TreeItem node={node} workspaceId={workspaceId} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-2 text-sm text-muted-foreground animate-fade-in">
-            Nenhum documento ainda. Crie um novo!
+        {hasDocuments && isFilterVisible && (
+          <div className="px-1 flex-shrink-0">
+            <div className="flex items-center gap-1 rounded-md border border-border/40 bg-muted/30 px-2 py-1 focus-within:ring-1 focus-within:ring-ring">
+              <MagnifyingGlass size={14} className="text-muted-foreground" />
+              <Input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Filtrar páginas..."
+                className="h-6 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                aria-label="Filtrar páginas por título"
+              />
+            </div>
           </div>
         )}
+
+        <div className="document-tree-list flex-1 min-h-0 overflow-x-hidden rounded-md bg-muted/10 py-1 pr-1 transition-smooth">
+          {isLoading ? (
+            <div className="p-2 text-sm text-muted-foreground animate-pulse">Carregando...</div>
+          ) : hasDocuments ? (
+            filteredTree && filteredTree.length > 0 ? (
+              <div className="space-y-0.5 pl-1">
+                {filteredTree.map((node: TreeNode, index: number) => (
+                  <div
+                    key={node.id}
+                    className="animate-stagger-in"
+                    style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
+                  >
+                    <TreeItem node={node} workspaceId={workspaceId} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-2 text-xs text-muted-foreground animate-fade-in">
+                Nenhuma página encontrada para &quot;{searchTerm}&quot;.
+              </div>
+            )
+          ) : (
+            <div className="p-2 text-sm text-muted-foreground animate-fade-in">
+              Nenhum documento ainda. Crie um novo!
+            </div>
+          )}
+        </div>
       </div>
-    </div>
     </TooltipProvider>
   )
 }

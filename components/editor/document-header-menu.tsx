@@ -84,6 +84,13 @@ export function DocumentHeaderMenu({
     }
   }
 
+  const handleAISuggestions = () => {
+    toast({
+      title: 'Sugestões de IA',
+      description: 'Em breve você poderá pedir sugestões de melhoria para esta página diretamente pela IA.',
+    })
+  }
+
   const handleFullWidthToggle = (checked: boolean) => {
     onFullWidthChange(checked)
   }
@@ -160,6 +167,10 @@ export function DocumentHeaderMenu({
               Copiar como Markdown
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleAISuggestions}>
+              <ChatCircle size={22} className="mr-2" />
+              Sugestões de IA
+            </DropdownMenuItem>
             <DropdownMenuCheckboxItem
               checked={fullWidth}
               onCheckedChange={handleFullWidthToggle}
