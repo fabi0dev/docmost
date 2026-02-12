@@ -400,39 +400,39 @@ async function buildDocumentsContext(params: {
   const whereByKeywords =
     keywords.length > 0
       ? {
-        OR: keywords.map((term) => ({
+          OR: keywords.map((term) => ({
+            OR: [
+              {
+                title: {
+                  contains: term,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                content: {
+                  contains: term,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          })),
+        }
+      : {
           OR: [
             {
               title: {
-                contains: term,
+                contains: queryForSearch,
                 mode: 'insensitive',
               },
             },
             {
               content: {
-                contains: term,
+                contains: queryForSearch,
                 mode: 'insensitive',
               },
             },
           ],
-        })),
-      }
-      : {
-        OR: [
-          {
-            title: {
-              contains: queryForSearch,
-              mode: 'insensitive',
-            },
-          },
-          {
-            content: {
-              contains: queryForSearch,
-              mode: 'insensitive',
-            },
-          },
-        ],
-      };
+        };
 
   const baseWhere: any = {
     document: {
@@ -445,24 +445,24 @@ async function buildDocumentsContext(params: {
   const [currentDocMatches, otherDocsMatches] = await Promise.all([
     documentId
       ? prisma.documentFullText.findMany({
-        where: {
-          ...baseWhere,
-          documentId,
-        },
-        select: {
-          documentId: true,
-          title: true,
-          content: true,
-        },
-        take: 3,
-      })
+          where: {
+            ...baseWhere,
+            documentId,
+          },
+          select: {
+            documentId: true,
+            title: true,
+            content: true,
+          },
+          take: 3,
+        })
       : Promise.resolve([]),
     prisma.documentFullText.findMany({
       where: documentId
         ? {
-          ...baseWhere,
-          documentId: { not: documentId },
-        }
+            ...baseWhere,
+            documentId: { not: documentId },
+          }
         : baseWhere,
       select: {
         documentId: true,
@@ -631,10 +631,10 @@ export async function POST(request: NextRequest, { params }: { params: { session
     const classified =
       lastUserMessage != null
         ? await classifyChatIntent({
-          lastUserMessage: lastUserMessage.content,
-          lastAssistantMessage,
-          apiKey,
-        })
+            lastUserMessage: lastUserMessage.content,
+            lastAssistantMessage,
+            apiKey,
+          })
         : ({ intent: 'chat' as const } satisfies ClassifiedIntent);
 
     const isEditRequest = classified.intent === 'edit_document' && !!chatSession.documentId;
@@ -929,10 +929,10 @@ export async function POST(request: NextRequest, { params }: { params: { session
       documentsContext =
         !generalChat && lastUserMessage
           ? await buildDocumentsContext({
-            userId: session.user.id,
-            documentId: chatSession.documentId,
-            userQuery: lastUserMessage.content,
-          })
+              userId: session.user.id,
+              documentId: chatSession.documentId,
+              userQuery: lastUserMessage.content,
+            })
           : null;
 
       isSensitiveQuestion =

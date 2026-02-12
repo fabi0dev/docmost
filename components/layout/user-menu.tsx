@@ -2,19 +2,8 @@
 
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { useWorkspaceStore } from '@/stores/workspace-store';
 import { useUIStore } from '@/stores/ui-store';
-import {
-  Briefcase,
-  CaretRight,
-  Gear,
-  Palette,
-  SignOut,
-  SlidersHorizontal,
-  Users,
-} from '@phosphor-icons/react';
-import { getWorkspaceShortName } from './workspace-switcher';
+import { CaretRight, Palette, SignOut, SlidersHorizontal } from '@phosphor-icons/react';
 import { useState, useRef, useEffect } from 'react';
 import { ThemePicker, type ThemeValue } from './theme-picker';
 interface UserMenuProps {
@@ -25,7 +14,6 @@ interface UserMenuProps {
 
 export function UserMenu({ open, onOpenChange, trigger }: UserMenuProps) {
   const { data: session } = useSession();
-  const { currentWorkspace } = useWorkspaceStore();
   const { theme, setTheme } = useUIStore();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -56,21 +44,6 @@ export function UserMenu({ open, onOpenChange, trigger }: UserMenuProps) {
       {trigger}
       {open && (
         <div className="absolute right-0 mt-2 w-64 rounded-lg border border-border bg-popover shadow-lg py-2 z-50 animate-fade-in-down origin-top-right">
-          {currentWorkspace && (
-            <>
-              <Link
-                href={`/settings/workspace/${currentWorkspace.id}`}
-                className="flex w-full items-center uppercase gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-smooth rounded-md"
-                onClick={() => onOpenChange(false)}
-              >
-                <Briefcase size={14} className="text-muted-foreground shrink-0" />
-                <span> {getWorkspaceShortName(currentWorkspace.name, 24)}</span>
-              </Link>
-
-              <div className="my-2 border-t border-border" />
-            </>
-          )}
-
           <div className="px-4 pb-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase">Conta</p>
           </div>

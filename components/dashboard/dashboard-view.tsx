@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus, SquaresFour, Briefcase } from '@phosphor-icons/react';
 import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
+import { useWorkspaceStore } from '@/stores/workspace-store';
 
 interface DashboardViewProps {
   userName: string;
@@ -17,6 +18,20 @@ export function DashboardView({ userName, workspaces }: DashboardViewProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const currentWorkspace = useWorkspaceStore((s) => s.currentWorkspace);
+
+  // Mostra esta tela só quando não há workspace selecionado; senão redireciona para a home do workspace
+  useEffect(() => {
+    if (!currentWorkspace) return;
+    const hasAccess = workspaces.some((w) => w.id === currentWorkspace.id);
+    if (hasAccess) {
+      router.replace(`/w/${currentWorkspace.id}`);
+    }
+  }, [currentWorkspace, workspaces, router]);
+
+  if (currentWorkspace && workspaces.some((w) => w.id === currentWorkspace.id)) {
+    return null; // evita flash da tela de seleção durante o redirect
+  }
 
   return (
     <div className="flex h-full w-full flex-col bg-background overflow-hidden">

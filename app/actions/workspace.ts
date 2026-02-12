@@ -48,6 +48,10 @@ const workspaceAppSchema = z.object({
   appId: z.string().min(1),
 });
 
+const deleteWorkspaceSchema = z.object({
+  workspaceId: z.string(),
+});
+
 export async function createWorkspace(data: z.infer<typeof createWorkspaceSchema>) {
   try {
     const session = await getServerSession(authOptions);
@@ -129,6 +133,44 @@ export async function updateWorkspace(data: z.infer<typeof updateWorkspaceSchema
       return { error: error.errors[0].message };
     }
     return { error: 'Erro ao atualizar workspace' };
+  }
+}
+
+export async function deleteWorkspace(data: z.infer<typeof deleteWorkspaceSchema>) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return { error: 'Não autenticado' };
+    }
+
+    const { workspaceId } = deleteWorkspaceSchema.parse(data);
+
+    const member = await prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId: session.user.id,
+        },
+      },
+    });
+
+    if (!member || !canManage(member.role)) {
+      return { error: 'Sem permissão para excluir o workspace' };
+    }
+
+    await prisma.workspace.delete({
+      where: { id: workspaceId },
+    });
+
+    revalidatePath('/dashboard');
+    revalidatePath('/w');
+    revalidatePath('/workspace');
+    return { data: { ok: true } };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.errors[0].message };
+    }
+    return { error: 'Erro ao excluir workspace' };
   }
 }
 

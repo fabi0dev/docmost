@@ -2,7 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { updateWorkspace, addWorkspaceApp, removeWorkspaceApp } from '@/app/actions/workspace';
+import {
+  updateWorkspace,
+  addWorkspaceApp,
+  removeWorkspaceApp,
+  deleteWorkspace,
+} from '@/app/actions/workspace';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -129,14 +134,21 @@ export function WorkspaceSettingsPage({
   const handleConfirmDeleteWorkspace = async () => {
     setIsDeleting(true);
     try {
-      // TODO: implementar deleteWorkspace server action
-      await new Promise((r) => setTimeout(r, 800));
-      toast({
-        title: 'Em desenvolvimento',
-        description: 'Exclusão de workspace será implementada em breve.',
-        variant: 'destructive',
-      });
+      const result = await deleteWorkspace({ workspaceId: workspace.id });
+      if (result.error) {
+        toast({
+          title: 'Erro',
+          description: result.error,
+          variant: 'destructive',
+        });
+        return;
+      }
       setIsDeleteDialogOpen(false);
+      toast({
+        title: 'Workspace excluído',
+        description: 'O workspace e todos os dados foram removidos permanentemente.',
+      });
+      router.push('/dashboard');
     } finally {
       setIsDeleting(false);
     }
@@ -285,6 +297,9 @@ export function WorkspaceSettingsPage({
         cancelLabel="Cancelar"
         loading={isDeleting}
         onConfirm={handleConfirmDeleteWorkspace}
+        requireTextMatchLabel={`Para confirmar, digite o nome exato do workspace (${workspace.name}).`}
+        requireTextMatchValue={workspace.name}
+        requireTextMatchPlaceholder={workspace.name}
       />
       <CreateWorkspaceDialog
         open={isCreateWorkspaceOpen}

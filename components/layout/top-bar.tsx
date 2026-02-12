@@ -7,6 +7,7 @@ import { APP_NAME } from '@/lib/config';
 import { UserMenu } from './user-menu';
 import { WorkspaceSwitcher } from './workspace-switcher';
 import { useUIStore } from '@/stores/ui-store';
+import { useWorkspaceStore } from '@/stores/workspace-store';
 
 interface TopBarProps {
   onSearchClick?: () => void;
@@ -25,12 +26,14 @@ const iconButtonClass =
 
 export function TopBar({ onSearchClick, userMenuOpen, onUserMenuOpenChange }: TopBarProps) {
   const openSearch = useOpenSearch(onSearchClick);
+  const currentWorkspace = useWorkspaceStore((s) => s.currentWorkspace);
+  const logoHref = currentWorkspace ? `/w/${currentWorkspace.id}` : '/dashboard';
 
   return (
     <div className="relative z-50 flex items-center justify-between border-b border-border bg-card px-6 py-3 animate-fade-in-down">
       <div className="flex items-center gap-3">
         <Link
-          href="/dashboard"
+          href={logoHref}
           className="flex items-center gap-2 group cursor-pointer transition-smooth"
         >
           <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 group-hover:scale-105 transition-smooth">

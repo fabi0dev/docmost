@@ -1,5 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
+import { useEffect, useState } from 'react';
 import { Button } from './button';
+import { Input } from './input';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -10,6 +12,9 @@ interface ConfirmDialogProps {
   loading?: boolean;
   onConfirm: () => void;
   onOpenChange: (open: boolean) => void;
+  requireTextMatchLabel?: string;
+  requireTextMatchValue?: string;
+  requireTextMatchPlaceholder?: string;
 }
 
 export function ConfirmDialog({
@@ -21,7 +26,22 @@ export function ConfirmDialog({
   loading,
   onConfirm,
   onOpenChange,
+  requireTextMatchLabel,
+  requireTextMatchValue,
+  requireTextMatchPlaceholder,
 }: ConfirmDialogProps) {
+  const [matchInput, setMatchInput] = useState('');
+
+  useEffect(() => {
+    if (!open) {
+      setMatchInput('');
+    }
+  }, [open]);
+
+  const requiresMatch = Boolean(requireTextMatchValue);
+  const isMatchValid = !requiresMatch || matchInput === requireTextMatchValue;
+  const confirmDisabled = loading || !isMatchValid;
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -35,6 +55,22 @@ export function ConfirmDialog({
               </Dialog.Description>
             ) : null}
 
+            {requiresMatch ? (
+              <div className="mt-4 space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  {requireTextMatchLabel ??
+                    'Por segurança, digite o valor solicitado abaixo para confirmar.'}
+                </p>
+                <Input
+                  autoFocus
+                  value={matchInput}
+                  onChange={(e) => setMatchInput(e.target.value)}
+                  placeholder={requireTextMatchPlaceholder}
+                  className="h-9"
+                />
+              </div>
+            ) : null}
+
             <div className="mt-4 flex justify-end gap-2">
               <Button
                 type="button"
@@ -44,7 +80,12 @@ export function ConfirmDialog({
               >
                 {cancelLabel}
               </Button>
-              <Button type="button" variant="destructive" onClick={onConfirm} disabled={loading}>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={onConfirm}
+                disabled={confirmDisabled}
+              >
                 {loading ? 'Aguarde...' : confirmLabel}
               </Button>
             </div>

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AppIcon } from './app-icon';
-import { Briefcase, ArrowLeft, Gear } from '@phosphor-icons/react';
+import { Briefcase, Gear } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { useWorkspaceStore } from '@/stores/workspace-store';
 
@@ -38,13 +38,15 @@ export function WorkspaceHomeView({ workspaceId, workspaceName, apps }: Workspac
         <div className="w-full max-w-4xl">
           <header className="px-6 pt-8 md:px-8 flex flex-col gap-2 animate-fade-in-up">
             <div className="flex items-start justify-between gap-4 mt-2">
-              <div>
-                <h1 className="text-2xl font-semibold text-foreground flex flex-row gap-2 items-center  ">
-                  <Briefcase /> {workspaceName}
-                </h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Apps disponíveis neste workspace.
-                </p>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="min-w-0">
+                  <h1 className="text-2xl font-semibold text-foreground flex flex-row gap-2 items-center">
+                    <Briefcase /> {workspaceName}
+                  </h1>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Apps disponíveis neste workspace.
+                  </p>
+                </div>
               </div>
               <Button variant="outline" size="sm" className="shrink-0 gap-2" asChild>
                 <Link href={`/settings/workspace/${workspaceId}`}>

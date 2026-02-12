@@ -80,7 +80,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
         let id = sessionId;
 
         if (!id) {
-          const res = await fetch('/api/chat/sessions', {
+          const res = await fetch('/api/docspace/chat/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -103,7 +103,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
           setSessionId(id);
         }
 
-        const messagesRes = await fetch(`/api/chat/sessions/${id}/messages`, {
+        const messagesRes = await fetch(`/api/docspace/chat/sessions/${id}/messages`, {
           method: 'GET',
         });
 
@@ -182,7 +182,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
       setIsSending(true);
 
       if (!id) {
-        const res = await fetch('/api/chat/sessions', {
+        const res = await fetch('/api/docspace/chat/sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -216,7 +216,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
       setMessages((prev) => [...prev, userMessage]);
       if (!overrideText) setInput('');
 
-      await fetch(`/api/chat/sessions/${id}/messages`, {
+      await fetch(`/api/docspace/chat/sessions/${id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: text }),
@@ -227,7 +227,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
         content: m.content,
       }));
 
-      const completionRes = await fetch(`/api/chat/sessions/${id}/completion`, {
+      const completionRes = await fetch(`/api/docspace/chat/sessions/${id}/completion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -324,7 +324,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     setContextDetached(true);
     if (sessionId) {
       try {
-        await fetch(`/api/chat/sessions/${sessionId}`, {
+        await fetch(`/api/docspace/chat/sessions/${sessionId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ documentId: null }),
@@ -342,7 +342,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
 
   useEffect(() => {
     if (!sessionId || contextDetached || !currentDocument?.id) return;
-    fetch(`/api/chat/sessions/${sessionId}`, {
+    fetch(`/api/docspace/chat/sessions/${sessionId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ documentId: currentDocument.id }),

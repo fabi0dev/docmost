@@ -1,11 +1,16 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDocumentTree } from '@/hooks/use-documents';
-import { FileText, Clock } from '@phosphor-icons/react';
+import { FileText, Clock, Plus } from '@phosphor-icons/react';
 import { cn, formatRecentDate } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Button } from '@/components/ui/button';
+import { createDocument } from '@/app/actions/documents';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/query-keys';
+import { useToast } from '@/components/ui/use-toast';
 
 interface TreeDocument {
   id: string;
@@ -23,6 +28,9 @@ export function WorkspaceOverview({
   onlyWithoutProject?: boolean;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState(false);
   const { data: tree, isLoading } = useDocumentTree(workspaceId);
 
   const recentlyUpdated = useMemo(() => {
@@ -35,6 +43,31 @@ export function WorkspaceOverview({
       (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
   }, [tree, onlyWithoutProject]);
+
+  const handleNewDocument = async () => {
+    setIsCreating(true);
+    try {
+      const result = await createDocument({
+        workspaceId,
+        title: 'Novo Documento',
+      });
+      if (result.data) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.documents.tree(workspaceId, null).queryKey,
+        });
+        toast({ title: 'Documento criado' });
+        router.push(`/workspace/${workspaceId}/${result.data.id}?focus=title`);
+      } else {
+        toast({
+          title: 'Erro',
+          description: result.error ?? 'Não foi possível criar o documento',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -53,6 +86,20 @@ export function WorkspaceOverview({
         <div className="w-full max-w-3xl">
           <div className="border-b bg-gradient-to-r from-background via-background to-muted/10">
             <div className="px-6 py-6 md:px-8">
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <h1 className="text-xl font-semibold text-foreground">
+                  {onlyWithoutProject ? 'Documentos sem projeto' : 'Visão geral'}
+                </h1>
+                <Button
+                  size="sm"
+                  onClick={handleNewDocument}
+                  disabled={isCreating}
+                  className="gap-2"
+                >
+                  {isCreating ? <LoadingSpinner size="sm" /> : <Plus size={18} />}
+                  Novo documento
+                </Button>
+              </div>
               <nav className="flex items-center gap-6" aria-label="Filtros">
                 <button
                   type="button"
@@ -69,11 +116,11 @@ export function WorkspaceOverview({
 
           <div className="px-6 py-6 md:px-8">
             {recentlyUpdated.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center">
-                {onlyWithoutProject
-                  ? 'Nenhum documento sem projeto. Crie documentos na visão geral ou em um projeto.'
-                  : 'Nenhum documento ainda. Crie um novo documento para começar.'}
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <p className="text-muted-foreground text-sm">
+                  {onlyWithoutProject ? 'Nenhum documento aqui ainda.' : 'Nenhum documento ainda.'}
+                </p>
+              </div>
             ) : (
               <ul className="space-y-0 divide-y divide-border/60">
                 {recentlyUpdated.map((doc) => (
