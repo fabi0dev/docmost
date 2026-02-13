@@ -26,7 +26,7 @@ export default async function DocspaceProjectPage({ params }: PageProps) {
   });
 
   if (!workspace) {
-    redirect('/dashboard');
+    redirect('/workspace');
   }
 
   const project = await prisma.project.findFirst({

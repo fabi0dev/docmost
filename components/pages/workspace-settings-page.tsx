@@ -148,7 +148,7 @@ export function WorkspaceSettingsPage({
         title: 'Workspace excluído',
         description: 'O workspace e todos os dados foram removidos permanentemente.',
       });
-      router.push('/dashboard');
+      router.push('/workspace');
     } finally {
       setIsDeleting(false);
     }
@@ -160,7 +160,7 @@ export function WorkspaceSettingsPage({
         title="Configurações do workspace"
         description={`${workspace.name} — geral, apps e membros`}
         showBackButton
-        onBack={() => router.push(`/w/${workspace.id}`)}
+        onBack={() => router.push(`/workspace/${workspace.id}`)}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild>
@@ -309,7 +309,7 @@ export function WorkspaceSettingsPage({
             title: 'Workspace criado',
             description: 'Você foi redirecionado para o novo espaço.',
           });
-          router.push(`/w/${newWorkspace.id}`);
+          router.push(`/workspace/${newWorkspace.id}`);
         }}
       />
     </div>

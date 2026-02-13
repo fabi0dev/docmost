@@ -43,7 +43,7 @@ function LoginForm() {
       if (result?.error) {
         setError('E-mail ou senha inválidos. Tente novamente.');
       } else {
-        router.push(callback || '/dashboard');
+        router.push(callback || '/workspace');
       }
     } catch {
       setError('Erro ao fazer login. Tente novamente.');

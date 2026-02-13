@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { DashboardView } from '@/components/dashboard/dashboard-view';
 
 export async function DocspaceWorkspaceListRoute() {
   const session = await getServerSession(authOptions);
@@ -10,7 +11,7 @@ export async function DocspaceWorkspaceListRoute() {
     redirect('/login');
   }
 
-  const workspace = await prisma.workspace.findFirst({
+  const workspaces = await prisma.workspace.findMany({
     where: {
       members: {
         some: {
@@ -21,18 +22,20 @@ export async function DocspaceWorkspaceListRoute() {
     orderBy: {
       createdAt: 'asc',
     },
+    select: { id: true, name: true },
   });
 
-  if (workspace) {
-    redirect(`/w/${workspace.id}`);
+  if (workspaces.length >= 1) {
+    redirect(`/workspace/${workspaces[0].id}`);
   }
 
+  const userName =
+    session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'Usuário';
+
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Nenhum workspace encontrado</h1>
-        <p className="mt-2 text-muted-foreground">Você não tem acesso a nenhum workspace ainda.</p>
-      </div>
-    </div>
+    <DashboardView
+      userName={userName}
+      workspaces={workspaces.map((w) => ({ id: w.id, name: w.name }))}
+    />
   );
 }

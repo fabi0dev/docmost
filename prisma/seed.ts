@@ -29,7 +29,7 @@ async function main() {
     create: {
       name: 'Workspace Padrão',
       slug: 'default',
-      description: 'Workspace inicial do Amby',
+      description: 'Workspace inicial do Docspace',
     },
   });
 
@@ -75,21 +75,21 @@ async function main() {
     where: {
       workspaceId_slug: {
         workspaceId: workspace.id,
-        slug: 'bem-vindo-ao-amby',
+        slug: 'bem-vindo-ao-docspace',
       },
     },
     update: {},
     create: {
       workspaceId: workspace.id,
-      title: 'Bem-vindo ao Amby',
-      slug: 'bem-vindo-ao-amby',
+      title: 'Bem-vindo ao Docspace',
+      slug: 'bem-vindo-ao-docspace',
       content: {
         type: 'doc',
         content: [
           {
             type: 'heading',
             attrs: { level: 1 },
-            content: [{ type: 'text', text: 'Bem-vindo ao Amby' }],
+            content: [{ type: 'text', text: 'Bem-vindo ao Docspace' }],
           },
           {
             type: 'paragraph',

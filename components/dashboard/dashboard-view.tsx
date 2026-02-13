@@ -20,12 +20,12 @@ export function DashboardView({ userName, workspaces }: DashboardViewProps) {
   const { toast } = useToast();
   const currentWorkspace = useWorkspaceStore((s) => s.currentWorkspace);
 
-  // Mostra esta tela só quando não há workspace selecionado; senão redireciona para a home do workspace
+  // Se já há workspace selecionado e usuário tem acesso, redireciona para o Docspace do workspace
   useEffect(() => {
     if (!currentWorkspace) return;
     const hasAccess = workspaces.some((w) => w.id === currentWorkspace.id);
     if (hasAccess) {
-      router.replace(`/w/${currentWorkspace.id}`);
+      router.replace(`/workspace/${currentWorkspace.id}`);
     }
   }, [currentWorkspace, workspaces, router]);
 
@@ -40,12 +40,11 @@ export function DashboardView({ userName, workspaces }: DashboardViewProps) {
           <header className="px-6 pt-8 md:px-8 flex flex-col gap-2 animate-fade-in-up">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
               <SquaresFour size={14} />
-              Dashboard
+              Docspace
             </p>
             <h1 className="text-2xl font-semibold text-foreground">Olá, {userName}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Escolha um workspace para entrar. Cada workspace tem seus próprios apps e membros e
-              não se misturam.
+              Escolha um workspace para entrar. Cada workspace tem seus documentos e membros.
             </p>
           </header>
 
@@ -70,7 +69,7 @@ export function DashboardView({ userName, workspaces }: DashboardViewProps) {
               {workspaces.map((workspace) => (
                 <Link
                   key={workspace.id}
-                  href={`/w/${workspace.id}`}
+                  href={`/workspace/${workspace.id}`}
                   className="group flex items-center gap-4 rounded-xl border border-border bg-card/80 p-5 hover:bg-primary/5 hover:border-primary/40 transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-smooth">
@@ -102,9 +101,9 @@ export function DashboardView({ userName, workspaces }: DashboardViewProps) {
         onCreated={(workspace) => {
           toast({
             title: 'Workspace criado',
-            description: 'Redirecionando para o workspace.',
+            description: 'Redirecionando para o Docspace.',
           });
-          router.push(`/w/${workspace.id}`);
+          router.push(`/workspace/${workspace.id}`);
         }}
       />
     </div>

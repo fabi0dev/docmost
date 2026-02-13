@@ -29,7 +29,7 @@ export function getWorkspaceShortName(name: string, maxLen = 20): string {
 
 /**
  * Calcula a rota de destino ao trocar de workspace.
- * Documento inicial do workspace é /w/[id] (apps), não Docspace.
+ * Página inicial do workspace é /workspace/[id] (Docspace).
  * Só navega se a tela atual for específica do workspace antigo; caso contrário só atualiza o store.
  */
 function getTargetPathWhenSwitchingWorkspace(
@@ -43,7 +43,7 @@ function getTargetPathWhenSwitchingWorkspace(
   const prefixSettings = `/settings/workspace/${oldWorkspaceId}`;
 
   if (pathname === prefixW || pathname.startsWith(prefixW + '/')) {
-    return pathname.replace(prefixW, `/w/${newWorkspaceId}`);
+    return pathname.replace(prefixW, `/workspace/${newWorkspaceId}`);
   }
   if (pathname === prefixWorkspace || pathname.startsWith(prefixWorkspace + '/')) {
     const rest = pathname.slice(prefixWorkspace.length);
@@ -133,7 +133,7 @@ export function WorkspaceSwitcher() {
             id: workspace.id,
             name: workspace.name,
           } as import('@prisma/client').Workspace);
-          router.push(`/w/${workspace.id}`);
+          router.push(`/workspace/${workspace.id}`);
         }}
       />
     </>

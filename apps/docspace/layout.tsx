@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { MainLayout } from '@/components/layout/main-layout';
 import { ChatDock } from '@/components/chat/chat-dock';
 import { docspaceConfig } from './config';
 
@@ -10,13 +9,13 @@ interface DocspaceLayoutProps {
 }
 
 /**
- * Layout principal do app Docspace.
- * Reaproveita o MainLayout e adiciona o chat (específico do Docspace).
+ * Envelope do Docspace: adiciona apenas o chat.
+ * O MainLayout (TopBar etc.) vem do layout pai (/workspace ou /settings).
  */
 export function DocspaceLayout({ children }: DocspaceLayoutProps) {
   return (
     <>
-      <MainLayout>{children}</MainLayout>
+      {children}
       <ChatDock />
     </>
   );

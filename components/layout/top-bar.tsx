@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { FileText, MagnifyingGlass, Bell, Question, User } from '@phosphor-icons/react';
+import { FileText, MagnifyingGlass, User } from '@phosphor-icons/react';
 import { APP_NAME } from '@/lib/config';
 import { UserMenu } from './user-menu';
 import { WorkspaceSwitcher } from './workspace-switcher';
@@ -27,7 +27,7 @@ const iconButtonClass =
 export function TopBar({ onSearchClick, userMenuOpen, onUserMenuOpenChange }: TopBarProps) {
   const openSearch = useOpenSearch(onSearchClick);
   const currentWorkspace = useWorkspaceStore((s) => s.currentWorkspace);
-  const logoHref = currentWorkspace ? `/w/${currentWorkspace.id}` : '/dashboard';
+  const logoHref = currentWorkspace ? `/workspace/${currentWorkspace.id}` : '/workspace';
 
   return (
     <div className="relative z-50 flex items-center justify-between border-b border-border bg-card px-6 py-3 animate-fade-in-down">
@@ -60,13 +60,6 @@ export function TopBar({ onSearchClick, userMenuOpen, onUserMenuOpenChange }: To
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className={iconButtonClass}>
-          <Question size={22} />
-        </Button>
-        <Button variant="ghost" size="icon" className={`${iconButtonClass} relative`}>
-          <Bell size={22} />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full animate-pulse" />
-        </Button>
         <UserMenu
           open={userMenuOpen}
           onOpenChange={onUserMenuOpenChange}

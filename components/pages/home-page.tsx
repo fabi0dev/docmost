@@ -148,7 +148,7 @@ export function HomePage({
                 {workspaces.map((workspace) => (
                   <Link
                     key={workspace.id}
-                    href={`/w/${workspace.id}`}
+                    href={`/workspace/${workspace.id}`}
                     className="group flex flex-col rounded-xl border bg-card/80 px-4 py-4 hover:bg-primary/5 hover:border-primary/40 transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <div className="flex items-center gap-3">
@@ -237,7 +237,7 @@ export function HomePage({
             id: workspace.id,
             name: workspace.name,
           } as any);
-          router.push(`/w/${workspace.id}`);
+          router.push(`/workspace/${workspace.id}`);
         }}
       />
     </div>

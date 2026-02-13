@@ -23,9 +23,9 @@ interface UIState {
   setDefaultPageEditMode: (mode: DefaultPageEditMode) => void;
 }
 
-const THEME_STORAGE_KEY = 'amby-theme';
-const FULL_WIDTH_STORAGE_KEY = 'amby-full-width';
-const DEFAULT_PAGE_EDIT_MODE_KEY = 'amby-default-page-edit-mode';
+const THEME_STORAGE_KEY = 'docspace-theme';
+const FULL_WIDTH_STORAGE_KEY = 'docspace-full-width';
+const DEFAULT_PAGE_EDIT_MODE_KEY = 'docspace-default-page-edit-mode';
 
 const getInitialTheme = (): Theme => {
   if (typeof window === 'undefined') {

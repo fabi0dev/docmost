@@ -28,7 +28,7 @@ export async function DocspaceWorkspaceRoute({ params }: WorkspaceRouteParams) {
   });
 
   if (!workspace) {
-    redirect('/dashboard');
+    redirect('/workspace');
   }
 
   return (

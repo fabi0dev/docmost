@@ -161,7 +161,7 @@ export function WorkspaceMembersPage({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/w/${workspace.id}`)}
+            onClick={() => router.push(`/workspace/${workspace.id}`)}
             className="h-9 w-9"
             title="Voltar ao workspace"
           >

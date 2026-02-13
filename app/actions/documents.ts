@@ -623,7 +623,7 @@ export async function moveDocumentToWorkspace(data: z.infer<typeof moveDocumentS
 
     revalidatePath(`/workspace/${sourceWorkspaceId}`);
     revalidatePath(`/workspace/${targetWorkspaceId}`);
-    revalidatePath('/dashboard');
+    revalidatePath('/workspace');
 
     return { data: result };
   } catch (error) {

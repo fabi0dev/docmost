@@ -83,9 +83,8 @@ export async function createWorkspace(data: z.infer<typeof createWorkspaceSchema
       data: { workspaceId: workspace.id, appId: 'docspace', sortOrder: 0 },
     });
 
-    revalidatePath('/dashboard');
+    revalidatePath('/workspace');
     revalidatePath(`/workspace/${workspace.id}`);
-    revalidatePath(`/w/${workspace.id}`);
     return { data: workspace };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -162,7 +161,7 @@ export async function deleteWorkspace(data: z.infer<typeof deleteWorkspaceSchema
       where: { id: workspaceId },
     });
 
-    revalidatePath('/dashboard');
+    revalidatePath('/workspace');
     revalidatePath('/w');
     revalidatePath('/workspace');
     return { data: { ok: true } };
@@ -373,8 +372,7 @@ export async function addWorkspaceApp(data: z.infer<typeof workspaceAppSchema>) 
 
     revalidatePath(`/settings/workspace/${workspaceId}`);
     revalidatePath(`/workspace/${workspaceId}`);
-    revalidatePath(`/w/${workspaceId}`);
-    revalidatePath('/dashboard');
+    revalidatePath('/workspace');
     return { data: { ok: true } };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -404,8 +402,7 @@ export async function removeWorkspaceApp(data: z.infer<typeof workspaceAppSchema
 
     revalidatePath(`/settings/workspace/${workspaceId}`);
     revalidatePath(`/workspace/${workspaceId}`);
-    revalidatePath(`/w/${workspaceId}`);
-    revalidatePath('/dashboard');
+    revalidatePath('/workspace');
     return { data: { ok: true } };
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -39,7 +39,7 @@ export async function DocspaceWorkspaceSettingsRoute({ params }: WorkspaceSettin
   });
 
   if (!workspace) {
-    redirect('/dashboard');
+    redirect('/workspace');
   }
 
   const currentMember = workspace.members.find((m) => m.userId === session.user.id);

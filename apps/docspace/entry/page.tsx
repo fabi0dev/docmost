@@ -5,5 +5,5 @@ import { redirect } from 'next/navigation';
  * Agora o fluxo é: Dashboard → workspace → apps do workspace (ex: Docspace).
  */
 export default function DocspaceEntryPage() {
-  redirect('/dashboard');
+  redirect('/workspace');
 }

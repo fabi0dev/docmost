@@ -6,14 +6,14 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Amby - Documentação Colaborativa',
+  title: 'Docspace - Documentação Colaborativa',
   description: 'Plataforma de documentação colaborativa self-hosted',
 };
 
 const themeInitScript = `
   (function() {
     try {
-      var storageKey = 'amby-theme';
+      var storageKey = 'docspace-theme';
       var theme = localStorage.getItem(storageKey) || 'system';
       var isDark = theme === 'dark' ||
         (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);

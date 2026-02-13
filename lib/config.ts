@@ -35,7 +35,7 @@ export const GROQ = {
   },
 } as const;
 
-export const APP_NAME = 'Amby';
+export const APP_NAME = 'Docspace';
 
 export const AUTH = {
   tagline: 'Plataforma self-hosted · Privacidade e controle',

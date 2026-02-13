@@ -47,7 +47,7 @@ function buildSystemPrompt(params: {
   const { workspaceName, documentTitle } = params;
 
   const base =
-    'Você é um assistente de IA integrado ao Amby, ' +
+    'Você é um assistente de IA integrado ao Docspace, ' +
     'uma plataforma de documentação colaborativa. ' +
     'Responda sempre em português do Brasil, de forma clara, objetiva e amigável.' +
     '\n\nUse o contexto da documentação apenas quando ele for relevante para a pergunta do usuário e evite respostas muito longas.' +
@@ -238,7 +238,7 @@ async function answerMetricQuestion(params: { metric: DetectedMetric; workspaceI
 
       return (
         `Atualmente existem **${workspacesTotal} workspaces** cadastrados ` +
-        'nesta instância do Amby.'
+        'nesta instância do Docspace.'
       );
     }
     case 'document_count': {
