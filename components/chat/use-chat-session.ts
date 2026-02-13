@@ -155,7 +155,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
             // ignora
           }
 
-          const workspaceId = workspaceForSession.id;
+          const workspaceId: string = workspaceForSession.id;
           const now = Date.now();
           const cutoff = now - INACTIVITY_THRESHOLD_MS;
 
@@ -169,9 +169,10 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
               if (found) {
                 const updatedAt = new Date(found.updatedAt).getTime();
                 if (updatedAt > cutoff) {
-                  id = found.id;
+                  const foundId = found.id as string;
+                  id = foundId;
                   setSessionId(id);
-                  saveLastSession(id, workspaceId);
+                  saveLastSession(foundId, workspaceId);
                 }
               }
             }
