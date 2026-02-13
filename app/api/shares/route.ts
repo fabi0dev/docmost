@@ -81,10 +81,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ token: created.token, permission: created.permission });
   } catch (error) {
     console.error('Erro ao criar link de compartilhamento:', error);
-    return NextResponse.json(
-      { error: 'Erro ao criar link de compartilhamento' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Erro ao criar link de compartilhamento' }, { status: 500 });
   }
 }
-

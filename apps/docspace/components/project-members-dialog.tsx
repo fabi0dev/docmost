@@ -115,8 +115,8 @@ export function ProjectMembersDialog({
               </Dialog.Title>
             </div>
             <Dialog.Description className="text-sm text-muted-foreground">
-              Defina quem pode editar ou apenas visualizar os documentos deste projeto. Apenas membros
-              do workspace podem ser adicionados.
+              Defina quem pode editar ou apenas visualizar os documentos deste projeto. Apenas
+              membros do workspace podem ser adicionados.
             </Dialog.Description>
 
             {isLoading ? (

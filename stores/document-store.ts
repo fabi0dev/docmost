@@ -1,26 +1,26 @@
-import { create } from 'zustand'
-import type { Document, DocumentComment, User } from '@prisma/client'
+import { create } from 'zustand';
+import type { Document, DocumentComment, User } from '@prisma/client';
 
 export type DocumentWithRelations = Document & {
-  content: any
+  content: any;
   comments?: Array<
     DocumentComment & {
-      user?: Pick<User, 'id' | 'name' | 'email' | 'image'>
+      user?: Pick<User, 'id' | 'name' | 'email' | 'image'>;
     }
-  >
-}
+  >;
+};
 
 interface DocumentState {
-  currentDocument: DocumentWithRelations | null
-  setCurrentDocument: (document: DocumentWithRelations | null) => void
-  isDirty: boolean
-  isSaving: boolean
-  setIsDirty: (dirty: boolean) => void
-  setIsSaving: (saving: boolean) => void
-  activeCommentId: string | null
-  setActiveCommentId: (id: string | null) => void
-  isCommentsOpen: boolean
-  setIsCommentsOpen: (open: boolean) => void
+  currentDocument: DocumentWithRelations | null;
+  setCurrentDocument: (document: DocumentWithRelations | null) => void;
+  isDirty: boolean;
+  isSaving: boolean;
+  setIsDirty: (dirty: boolean) => void;
+  setIsSaving: (saving: boolean) => void;
+  activeCommentId: string | null;
+  setActiveCommentId: (id: string | null) => void;
+  isCommentsOpen: boolean;
+  setIsCommentsOpen: (open: boolean) => void;
 }
 
 export const useDocumentStore = create<DocumentState>((set) => ({
@@ -35,6 +35,4 @@ export const useDocumentStore = create<DocumentState>((set) => ({
   setActiveCommentId: (id) => set({ activeCommentId: id }),
   isCommentsOpen: false,
   setIsCommentsOpen: (open) => set({ isCommentsOpen: open }),
-}))
-
-
+}));

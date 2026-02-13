@@ -47,11 +47,7 @@ export async function DocspaceWorkspaceSettingsRoute({ params }: WorkspaceSettin
 
   return (
     <DocspaceLayout>
-      <WorkspaceSettingsPage
-        workspace={workspace}
-        canManageWorkspace={canManageWorkspace}
-      />
+      <WorkspaceSettingsPage workspace={workspace} canManageWorkspace={canManageWorkspace} />
     </DocspaceLayout>
   );
 }
-

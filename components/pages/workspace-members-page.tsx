@@ -234,7 +234,9 @@ export function WorkspaceMembersPage({
                               className="gap-1.5 min-w-[120px]"
                               disabled={updatingRole === member.userId}
                             >
-                              {updatingRole === member.userId ? '...' : getPermissionLabel(member.role)}
+                              {updatingRole === member.userId
+                                ? '...'
+                                : getPermissionLabel(member.role)}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -250,7 +252,7 @@ export function WorkspaceMembersPage({
                         </DropdownMenu>
                       ) : (
                         <span className="text-sm px-2 py-1 rounded bg-muted text-muted-foreground">
-                        {getPermissionLabel(member.role)}
+                          {getPermissionLabel(member.role)}
                         </span>
                       )}
                       {canManageMembers &&

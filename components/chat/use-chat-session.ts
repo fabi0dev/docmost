@@ -112,31 +112,28 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
   // Workspace para criar sessão: o selecionado ou o primeiro disponível (chat geral)
   const workspaceForSession = currentWorkspace ?? firstWorkspace;
 
-  const loadMessagesForSession = useCallback(
-    async (id: string) => {
-      const messagesRes = await fetch(`/api/docspace/chat/sessions/${id}/messages`, {
-        method: 'GET',
-      });
-      if (!messagesRes.ok) {
-        const data = await messagesRes.json().catch(() => ({}));
-        throw new Error(
-          (data as any)?.error || 'Não foi possível carregar o histórico de mensagens.',
-        );
-      }
-      const data = await messagesRes.json();
-      const mapped: ChatMessage[] = (data as any[]).map((m: any) => ({
-        id: m.id,
-        role: m.role === 'USER' ? 'user' : 'assistant',
-        content: m.content,
-        createdAt: new Date(m.createdAt),
-      }));
-      if (mapped.length === 0) {
-        mapped.push({ ...WELCOME_MESSAGE, createdAt: new Date() });
-      }
-      setMessages(mapped);
-    },
-    [],
-  );
+  const loadMessagesForSession = useCallback(async (id: string) => {
+    const messagesRes = await fetch(`/api/docspace/chat/sessions/${id}/messages`, {
+      method: 'GET',
+    });
+    if (!messagesRes.ok) {
+      const data = await messagesRes.json().catch(() => ({}));
+      throw new Error(
+        (data as any)?.error || 'Não foi possível carregar o histórico de mensagens.',
+      );
+    }
+    const data = await messagesRes.json();
+    const mapped: ChatMessage[] = (data as any[]).map((m: any) => ({
+      id: m.id,
+      role: m.role === 'USER' ? 'user' : 'assistant',
+      content: m.content,
+      createdAt: new Date(m.createdAt),
+    }));
+    if (mapped.length === 0) {
+      mapped.push({ ...WELCOME_MESSAGE, createdAt: new Date() });
+    }
+    setMessages(mapped);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -167,8 +164,7 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
             if (listRes.ok) {
               const list = (await listRes.json()) as any[];
               const found = list.find(
-                (s: any) =>
-                  s.id === stored!.sessionId && s.workspaceId === workspaceId,
+                (s: any) => s.id === stored!.sessionId && s.workspaceId === workspaceId,
               );
               if (found) {
                 const updatedAt = new Date(found.updatedAt).getTime();

@@ -4,13 +4,13 @@
 
 Contém as rotas de API do app Docspace, usadas pelo front:
 
-| Rota | Uso |
-|------|-----|
-| `GET/POST /api/docspace/projects` | `use-projects.ts` (listar/criar projetos por workspace) |
-| `GET/POST /api/docspace/chat/sessions` | `use-chat-session.ts` (sessões e completion do chat) |
-| `GET/PATCH /api/docspace/chat/sessions/[id]` | Atualizar sessão (ex.: remover documento do contexto) |
-| `GET/POST .../messages` | Mensagens da sessão |
-| `POST .../completion` | Resposta da IA (Groq) |
+| Rota                                         | Uso                                                     |
+| -------------------------------------------- | ------------------------------------------------------- |
+| `GET/POST /api/docspace/projects`            | `use-projects.ts` (listar/criar projetos por workspace) |
+| `GET/POST /api/docspace/chat/sessions`       | `use-chat-session.ts` (sessões e completion do chat)    |
+| `GET/PATCH /api/docspace/chat/sessions/[id]` | Atualizar sessão (ex.: remover documento do contexto)   |
+| `GET/POST .../messages`                      | Mensagens da sessão                                     |
+| `POST .../completion`                        | Resposta da IA (Groq)                                   |
 
 **Conclusão:** Manter. É a API do Docspace.
 

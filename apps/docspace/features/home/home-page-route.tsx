@@ -69,9 +69,10 @@ export async function DocspaceHomePageRoute() {
     const userName =
       session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'Usuário';
 
-    return <HomePage userName={userName} workspaces={workspaces} recentDocuments={recentDocuments} />;
+    return (
+      <HomePage userName={userName} workspaces={workspaces} recentDocuments={recentDocuments} />
+    );
   } catch {
     return <SystemOffline />;
   }
 }
-

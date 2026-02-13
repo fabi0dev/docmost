@@ -26,7 +26,8 @@ export function getMarkdownFromContent(content: unknown): string {
     nodes
       .map((n) => {
         if (typeof n.text === 'string') return n.text as string;
-        if (Array.isArray(n.content)) return extractText(n.content as Array<Record<string, unknown>>);
+        if (Array.isArray(n.content))
+          return extractText(n.content as Array<Record<string, unknown>>);
         return '';
       })
       .join('');

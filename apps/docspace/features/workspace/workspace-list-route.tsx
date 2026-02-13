@@ -31,11 +31,8 @@ export async function DocspaceWorkspaceListRoute() {
     <div className="flex h-screen items-center justify-center">
       <div className="text-center">
         <h1 className="text-2xl font-bold">Nenhum workspace encontrado</h1>
-        <p className="mt-2 text-muted-foreground">
-          Você não tem acesso a nenhum workspace ainda.
-        </p>
+        <p className="mt-2 text-muted-foreground">Você não tem acesso a nenhum workspace ainda.</p>
       </div>
     </div>
   );
 }
-

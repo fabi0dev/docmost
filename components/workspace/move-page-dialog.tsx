@@ -40,9 +40,7 @@ export function MovePageDialog({
   const filteredProjects = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return availableProjects;
-    return availableProjects.filter((p: ProjectWithCount) =>
-      p.name.toLowerCase().includes(term),
-    );
+    return availableProjects.filter((p: ProjectWithCount) => p.name.toLowerCase().includes(term));
   }, [availableProjects, search]);
 
   const handleClose = () => {
@@ -103,7 +101,8 @@ export function MovePageDialog({
                 Mover documento para outro projeto do mesmo workspace.
               </Dialog.Description>
               <p className="text-xs text-muted-foreground mt-1">
-                Documento atual: <span className="font-medium text-foreground">{documentTitle}</span>
+                Documento atual:{' '}
+                <span className="font-medium text-foreground">{documentTitle}</span>
               </p>
             </div>
 

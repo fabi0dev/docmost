@@ -568,10 +568,10 @@ export async function moveDocumentToWorkspace(data: z.infer<typeof moveDocumentS
               path: newPath,
               ...(isRoot
                 ? {
-                  parentId: null,
-                  depth: 0,
-                  order: newOrder,
-                }
+                    parentId: null,
+                    depth: 0,
+                    order: newOrder,
+                  }
                 : {}),
             },
           });

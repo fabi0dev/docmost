@@ -23,4 +23,3 @@ export function DocspaceLayout({ children }: DocspaceLayoutProps) {
 }
 
 export const DOCSPACE_APP = docspaceConfig;
-

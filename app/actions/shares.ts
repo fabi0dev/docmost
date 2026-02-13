@@ -42,14 +42,10 @@ export async function createShareLink(input: CreateShareLinkInput) {
       return { error: 'Sem permissão para compartilhar este documento' };
     }
 
-    const permission: Permission =
-      input.mode === 'read' ? Permission.READ : Permission.WRITE;
+    const permission: Permission = input.mode === 'read' ? Permission.READ : Permission.WRITE;
 
     // Para links de edição, exigir permissão equivalente a editar o documento
-    if (
-      permission === Permission.WRITE &&
-      !['OWNER', 'ADMIN', 'EDITOR'].includes(member.role)
-    ) {
+    if (permission === Permission.WRITE && !['OWNER', 'ADMIN', 'EDITOR'].includes(member.role)) {
       return { error: 'Sem permissão para gerar link com edição cooperativa' };
     }
 
@@ -82,4 +78,3 @@ export async function createShareLink(input: CreateShareLinkInput) {
     return { error: 'Erro ao criar link de compartilhamento' };
   }
 }
-
