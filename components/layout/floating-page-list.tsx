@@ -29,6 +29,7 @@ interface FloatingPageListProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId?: string | null;
+  isMobile?: boolean;
 }
 
 export function FloatingPageList({
@@ -37,6 +38,7 @@ export function FloatingPageList({
   open,
   onOpenChange,
   projectId,
+  isMobile = false,
 }: FloatingPageListProps) {
   const router = useRouter();
   const setLastProjectIdForWorkspace = useWorkspaceStore((s) => s.setLastProjectIdForWorkspace);
@@ -61,6 +63,15 @@ export function FloatingPageList({
 
   return (
     <>
+      {/* Backdrop no mobile: fecha o painel ao tocar fora */}
+      {isMobile && open && (
+        <button
+          type="button"
+          aria-label="Fechar painel"
+          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-[2px] md:hidden"
+          onClick={() => onOpenChange(false)}
+        />
+      )}
       {!open && (
         <Button
           type="button"
@@ -84,11 +95,12 @@ export function FloatingPageList({
 
       <div
         className={cn(
-          'fixed left-0 z-40 flex flex-col border-r border-border bg-card transition-transform duration-300 ease-out',
+          'fixed left-0 z-40 flex flex-col border-r border-border bg-card shadow-xl transition-transform duration-300 ease-out',
           open ? 'translate-x-0' : '-translate-x-full',
+          isMobile && 'max-w-[85vw]',
         )}
         style={{
-          width: SIDEBAR_PANEL_WIDTH,
+          width: isMobile ? Math.min(SIDEBAR_PANEL_WIDTH, 320) : SIDEBAR_PANEL_WIDTH,
           top: TOP_BAR_OFFSET,
           height: `calc(100vh - ${TOP_BAR_OFFSET}px)`,
         }}

@@ -16,6 +16,7 @@ import { useSession } from 'next-auth/react';
 import { useDocumentStore } from '@/stores/document-store';
 import { useUIStore } from '@/stores/ui-store';
 import { useWorkspaceStore } from '@/stores/workspace-store';
+import { useIsMobile } from '@/hooks/use-media-query';
 import { updateDocument } from '@/app/actions/documents';
 import { useDebounce } from '@/hooks/use-debounce';
 import { queryKeys } from '@/lib/query-keys';
@@ -49,6 +50,7 @@ export function Editor() {
   const [blockMenuPosition, setBlockMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
   );
+  const isMobile = useIsMobile();
   const shareModeParam = searchParams.get('mode');
   const initialReadOnly =
     shareModeParam === 'read'
@@ -447,9 +449,14 @@ export function Editor() {
 
   return (
     <div className="relative flex h-full w-full flex-col bg-background overflow-hidden animate-fade-in">
-      {/* Menu flutuante fixo no footer, centralizado */}
-      <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center pointer-events-none px-4">
-        <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2.5 shadow-md transition-shadow duration-200 hover:shadow-lg">
+      {/* Menu flutuante fixo no footer, centralizado; safe-area no mobile para não cobrir conteúdo */}
+      <div
+        className="fixed left-0 right-0 z-30 flex justify-center pointer-events-none px-3 sm:px-4"
+        style={{
+          bottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
+        }}
+      >
+        <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 shadow-md transition-shadow duration-200 hover:shadow-lg sm:gap-3 sm:px-4 sm:py-2.5">
           <DocumentHeaderMenu
             isReadOnly={isReadOnly}
             onReadOnlyChange={setIsReadOnly}
@@ -482,13 +489,13 @@ export function Editor() {
         <div className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
           <div
             className={cn(
-              'h-full min-w-0 w-full mx-auto transition-[max-width] duration-200 px-6 sm:px-8',
+              'h-full min-w-0 w-full mx-auto transition-[max-width] duration-200 px-4 sm:px-6 md:px-8',
               fullWidth ? 'max-w-4xl' : 'max-w-2xl',
-              fullWidth && isCommentsOpen && 'pr-80',
+              fullWidth && isCommentsOpen && !isMobile && 'pr-80',
             )}
           >
             {/* Título (rola junto com o conteúdo) */}
-            <div className="pt-6 pb-2 pr-6">
+            <div className="pt-4 pb-2 pr-2 sm:pt-6 sm:pr-6">
               <input
                 ref={titleInputRef}
                 type="text"
@@ -532,8 +539,11 @@ export function Editor() {
               />
             </div>
 
-            {/* Conteúdo do editor (pb para não ficar atrás do menu flutuante) */}
-            <div ref={editorWrapperRef} className="relative min-h-full pt-2 pb-28 overflow-y-auto">
+            {/* Conteúdo do editor (pb para não ficar atrás do menu flutuante; no mobile mais espaço + safe-area) */}
+            <div
+              ref={editorWrapperRef}
+              className="relative min-h-full pt-2 overflow-x-hidden overflow-y-auto pb-[max(8rem,calc(5rem+env(safe-area-inset-bottom,0px)))] sm:pb-28"
+            >
               <BubbleMenu
                 editor={editor}
                 updateDelay={50}
@@ -579,15 +589,15 @@ export function Editor() {
               )}
               <EditorContent
                 editor={editor}
-                className="prose prose-slate dark:prose-invert max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-full [&_.ProseMirror]:prose-p:my-2 [&_.ProseMirror]:prose-headings:my-3"
+                className="prose prose-slate dark:prose-invert max-w-none focus:outline-none break-words [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-full [&_.ProseMirror]:prose-p:my-2 [&_.ProseMirror]:prose-headings:my-3 [&_.ProseMirror]:break-words"
               />
             </div>
           </div>
         </div>
 
-        {/* Painel de comentários: título e Fechar no header do painel */}
+        {/* Painel de comentários: overlay no mobile, lateral no desktop */}
         <div className={cn('flex-shrink-0', !isCommentsOpen && 'overflow-hidden')}>
-          <CommentsPanel editor={editor} />
+          <CommentsPanel editor={editor} isMobile={isMobile} />
         </div>
       </div>
     </div>

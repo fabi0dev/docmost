@@ -15,6 +15,7 @@ import { useWorkspaceStore } from '@/stores/workspace-store';
 import { useDocumentStore } from '@/stores/document-store';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { useDocument } from '@/hooks/use-documents';
+import { useIsMobile } from '@/hooks/use-media-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 function LoadingPlaceholder({ message = 'Carregando...' }: { message?: string }) {
@@ -64,9 +65,23 @@ export function WorkspaceLayout({
   const { setCurrentDocument } = useDocumentStore();
 
   const projectId = projectIdProp ?? projectIdFromPath ?? document?.projectId ?? null;
+  const showSidebar = !!documentId;
 
+  const isMobile = useIsMobile();
   const isLoading = isLoadingWorkspace || (!!documentId && isLoadingDocument);
   const [pageListOpen, setPageListOpen] = useState(true);
+
+  // No mobile: sidebar fica fechada por padrão e conteúdo usa 100% da largura (overlay)
+  useEffect(() => {
+    if (isMobile) setPageListOpen(false);
+  }, [isMobile]);
+
+  const contentMarginLeft =
+    !showSidebar || isMobile
+      ? 0
+      : pageListOpen
+        ? SIDEBAR_PANEL_WIDTH
+        : FLOATING_BUTTON_OFFSET;
 
   // Persiste o projeto atual quando estiver em rota de projeto ou em um documento do projeto
   useEffect(() => {
@@ -95,7 +110,6 @@ export function WorkspaceLayout({
 
   const isOverviewPage = pathname?.endsWith('/overview');
   const isProjectPage = !!projectId && !documentId;
-  const showSidebar = !!documentId;
 
   const mainContent = documentId ? (
     <Editor />
@@ -128,19 +142,13 @@ export function WorkspaceLayout({
           open={pageListOpen}
           onOpenChange={setPageListOpen}
           projectId={projectId}
+          isMobile={isMobile}
         />
       )}
 
       <div
         className="flex-1 overflow-hidden flex flex-col min-w-0 transition-[margin] duration-300 ease-out"
-        style={{
-          marginLeft:
-            showSidebar && pageListOpen
-              ? SIDEBAR_PANEL_WIDTH
-              : showSidebar
-                ? FLOATING_BUTTON_OFFSET
-                : 0,
-        }}
+        style={{ marginLeft: contentMarginLeft }}
       >
         {mainContent}
       </div>

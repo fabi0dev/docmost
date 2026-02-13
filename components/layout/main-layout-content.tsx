@@ -30,16 +30,16 @@ export function MainLayoutContent({ children, onSearchOpen }: MainLayoutContentP
   }, [pathname, setCurrentDocument]);
 
   return (
-    <>
+    <div className="flex w-full min-w-0 flex-1 flex-col">
       <TopBar
         onSearchClick={() => onSearchOpen(true)}
         userMenuOpen={userMenuOpen}
         onUserMenuOpenChange={setUserMenuOpen}
       />
 
-      <div className="flex flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden bg-gradient-to-br from-background via-background to-muted/20 animate-fade-in">
+      <div className="flex min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-br from-background via-background to-muted/20 animate-fade-in">
         {children}
       </div>
-    </>
+    </div>
   );
 }

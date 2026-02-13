@@ -7,12 +7,16 @@ interface CommentsPanelProps {
   editor: Editor;
   /** Quando true, não renderiza o cabeçalho (título + Fechar); usado quando o cabeçalho está na barra do editor */
   hideHeader?: boolean;
+  /** No mobile, o painel é exibido como overlay full-screen */
+  isMobile?: boolean;
 }
 
-export function CommentsPanel({ editor, hideHeader = false }: CommentsPanelProps) {
+export function CommentsPanel({ editor, hideHeader = false, isMobile = false }: CommentsPanelProps) {
   const { currentDocument, activeCommentId, setActiveCommentId } = useDocumentStore();
 
   const comments = currentDocument?.comments ?? [];
+
+  const handleClose = () => useDocumentStore.getState().setIsCommentsOpen(false);
 
   const handleGoToComment = (commentId: string) => {
     const comment = comments.find((c) => c.id === commentId);
@@ -35,6 +39,78 @@ export function CommentsPanel({ editor, hideHeader = false }: CommentsPanelProps
 
   const isCommentsOpen = useDocumentStore((s) => s.isCommentsOpen);
 
+  if (isMobile) {
+    if (!isCommentsOpen) return null;
+    return (
+      <div
+        role="dialog"
+        aria-label="Painel de comentários"
+        className="fixed inset-0 z-50 flex flex-col bg-card md:hidden"
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+          <span className="text-sm font-semibold text-foreground">Comentários</span>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Fechar
+          </button>
+        </div>
+        {comments.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground px-4 py-6">
+            Nenhum comentário neste documento.
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto space-y-1 px-3 py-3">
+            {comments.map((comment) => {
+              const isActive = comment.id === activeCommentId;
+              const createdAt = comment.createdAt
+                ? format(new Date(comment.createdAt), "dd/MM/yyyy 'às' HH:mm", {
+                    locale: ptBR,
+                  })
+                : '';
+              const userName = (comment as any).user?.name ?? 'Usuário';
+              const position = (comment as any).position as
+                | { from?: number; to?: number }
+                | null
+                | undefined;
+              let selectionText = '';
+              if (position && typeof position.from === 'number' && typeof position.to === 'number') {
+                try {
+                  selectionText = editor.state.doc.textBetween(position.from, position.to, ' ');
+                } catch {
+                  selectionText = '';
+                }
+              }
+              if (!selectionText) selectionText = 'Trecho comentado';
+              return (
+                <button
+                  key={comment.id}
+                  type="button"
+                  onClick={() => handleGoToComment(comment.id)}
+                  className={[
+                    'w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors',
+                    isActive ? 'bg-primary/10' : 'hover:bg-muted/40',
+                  ].join(' ')}
+                >
+                  <p className="text-sm font-medium text-foreground line-clamp-2 mb-1">
+                    {selectionText}
+                  </p>
+                  <p className="text-sm text-foreground line-clamp-3 mb-1">{comment.content}</p>
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span className="truncate max-w-[55%]">{userName}</span>
+                    {createdAt && <span>{createdAt}</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <aside
       aria-label="Painel de comentários"
@@ -48,7 +124,7 @@ export function CommentsPanel({ editor, hideHeader = false }: CommentsPanelProps
           <span className="text-sm font-semibold text-foreground">Comentários</span>
           <button
             type="button"
-            onClick={() => useDocumentStore.getState().setIsCommentsOpen(false)}
+            onClick={handleClose}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             Fechar

@@ -120,6 +120,9 @@
 .ProseMirror {
   outline: none;
   line-height: 1.75;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Placeholder na linha focada (TipTap Placeholder com showOnlyCurrent) */

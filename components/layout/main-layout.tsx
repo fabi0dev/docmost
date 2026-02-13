@@ -45,7 +45,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <>
-      <div className="flex h-screen flex-col bg-background overflow-hidden">
+      <div className="flex h-screen w-full flex-col bg-background overflow-hidden">
         <MainLayoutContent onSearchOpen={setSearchOpen}>{children}</MainLayoutContent>
         <Toaster />
       </div>
