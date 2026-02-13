@@ -5,7 +5,7 @@ import { useDocumentStore } from '@/stores/document-store';
 import { CheckCircle, WifiSlash } from '@phosphor-icons/react';
 
 export function SaveStatus() {
-  const { isDirty, isSaving } = useDocumentStore();
+  const { isSaving } = useDocumentStore();
   const [isOnline, setIsOnline] = useState(() =>
     typeof window !== 'undefined' ? navigator.onLine : true,
   );
@@ -21,7 +21,7 @@ export function SaveStatus() {
     };
   }, []);
 
-  const statusKey = !isOnline ? 'offline' : isSaving || isDirty ? 'saving' : 'saved';
+  const statusKey = !isOnline ? 'offline' : isSaving ? 'saving' : 'saved';
   const baseClass = 'flex items-center gap-2 text-sm font-medium animate-in fade-in-0 duration-200';
 
   if (!isOnline) {
@@ -33,7 +33,7 @@ export function SaveStatus() {
     );
   }
 
-  if (isSaving || isDirty) {
+  if (isSaving) {
     return (
       <div key={statusKey} className={`${baseClass} text-amber-500`}>
         <svg

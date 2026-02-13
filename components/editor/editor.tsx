@@ -67,6 +67,8 @@ export function Editor() {
   const ignoreNextUpdateRef = useRef(true);
   const wsRef = useRef<WebSocket | null>(null);
   const wsReconnectTimeoutRef = useRef<number | null>(null);
+  /** Id do save em andamento; só aplicamos resultado do save cujo id ainda é o atual */
+  const saveIdRef = useRef(0);
   const [clientId] = useState(() =>
     typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36).slice(2),
   );
@@ -135,7 +137,6 @@ export function Editor() {
       }
 
       setIsDirty(true);
-      setIsSaving(true);
       const content = editor.getJSON();
       setEditorContent(content);
       // Envia conteúdo atualizado para outros clientes via WebSocket (edição cooperativa)
@@ -383,7 +384,11 @@ export function Editor() {
 
     // Só salvar se o conteúdo mudou
     if (lastSavedContent !== newContent) {
+      saveIdRef.current += 1;
+      const mySaveId = saveIdRef.current;
+
       const saveContent = async () => {
+        setIsSaving(true);
         try {
           // Garantir payload serializável para a Server Action (evita exceção no cliente)
           const serializableContent = JSON.parse(JSON.stringify(debouncedContent));
@@ -392,10 +397,13 @@ export function Editor() {
             content: serializableContent,
           });
 
+          // Só aplicar resultado se este ainda for o save mais recente (não foi “interrompido” por outro)
+          const isLatestSave = saveIdRef.current === mySaveId;
+
           if (result.error) {
             console.error('Erro ao salvar:', result.error);
-            setIsSaving(false);
-          } else if (result.data) {
+            if (isLatestSave) setIsSaving(false);
+          } else if (result.data && isLatestSave) {
             setIsDirty(false);
             setIsSaving(false);
             setLastSavedContent(newContent);
@@ -413,7 +421,7 @@ export function Editor() {
           }
         } catch (error) {
           console.error('Erro ao salvar documento:', error);
-          setIsSaving(false);
+          if (saveIdRef.current === mySaveId) setIsSaving(false);
         }
       };
 
