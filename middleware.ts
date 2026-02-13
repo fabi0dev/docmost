@@ -33,5 +33,8 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  // Não executar middleware em API, estáticos, assets e health checks (Vercel)
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|woff2?|css|js)$).*)',
+  ],
 };
